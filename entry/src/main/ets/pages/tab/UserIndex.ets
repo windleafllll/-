@@ -1,0 +1,263 @@
+import { router } from '@kit.ArkUI'
+import { chooseNavigationBar } from '../user/tools/Dialogs'
+
+interface MyselfUI {
+  icon: ResourceStr,
+  title: ResourceStr,
+  url: string,
+}
+
+@Component
+export struct UserIndex {
+  @StorageLink('UserHead') userHead: string = 'app.media.ic_user_head_1'
+  @StorageLink('UserName') userName: string = 'root'
+  @StorageLink('isUserLogin') isLogin: string = '未登录'
+  @State myselfUI: MyselfUI[] = [
+    {
+      icon: $r('app.media.ic_user_vipcard'),
+      title: '季度卡',
+      url: ''
+    },
+    {
+      icon: $r('app.media.ic_user_yuncunchu'),
+      title: '备份|恢复|云同步',
+      url: 'pages/Setting/Cloud_synchronization'
+    },
+  ]
+  @State ToolUI: MyselfUI[] = [
+    {
+      icon: $r('app.media.ic_user_furthertime'),
+      title: '未来倒计时',
+      url: 'pages/user/tools/FurtherTime'
+    },
+    {
+      icon: $r('app.media.ic_user_historicalrecords'),
+      title: '专注历史记录',
+      url: 'pages/user/tools/HistoricalRecords'
+    },
+    {
+      icon: $r('app.media.ic_user_studyroom'),
+      title: '自习室 | 许愿墙',
+      url: 'pages/user/tools/StudyRoom'
+    },
+  ]
+  @State ToolsUI: MyselfUI[] = [
+    {
+      icon: $r('app.media.ic_user_bell'),
+      title: '专注计时核心设计',
+      url: 'pages/user/tools/BellIndex'
+    },
+    {
+      icon: $r('app.media.ic_user_picture'),
+      title: '海报背景和外观',
+      url: ''
+    },
+    {
+      icon: $r("app.media.ic_user_customise"),
+      title: '自定义底栏模块',
+      url: ''
+    },
+    {
+      icon: $r("app.media.ic_user_paintplate"),
+      title: '主题颜色搭配',
+      url: ''
+    },
+    {
+      icon: $r("app.media.ic_user_servicewidgets"),
+      title: '桌面小组件选项',
+      url: ''
+    },
+    {
+      icon: $r("app.media.ic_user_settings"),
+      title: '其他设置',
+      url: ''
+    },
+  ]
+  dialogChooseNavigationBar: CustomDialogController | null = new CustomDialogController({
+    builder: chooseNavigationBar(),
+    cornerRadius: 15,
+    width: '80%'
+  })
+
+  build() {
+    Scroll() {
+      Column({ space: 20 }) {
+        Column({ space: 5 }) {
+          if (this.isLogin == '未登录') {
+            Image($r('app.media.ic_user_account'))
+              .width(42)
+              .borderRadius(20)
+              .backgroundColor('#79ffffff')
+            Text(this.isLogin)
+              .fontWeight(FontWeight.Bold)
+              .fontSize(25)
+              .fontColor(Color.White)
+          } else {
+            Image($r(this.userHead))
+              .width(42)
+              .borderRadius(20)
+              .backgroundColor('#79ffffff')
+            Text(this.userName)
+              .fontWeight(FontWeight.Bold)
+              .fontSize(25)
+              .fontColor(Color.White)
+          }
+        }
+        .margin({ left: 15, right: 15 })
+        .borderRadius(15)
+        .backgroundImage($r('app.media.ic_user_backgroundimage'))
+        .backgroundImageSize({ width: '100%', height: '100%' })
+        .padding(30)
+        .width('90%')
+        .onClick(() => {
+          if (this.isLogin == '未登录') {
+            router.pushUrl({ url: 'pages/user/UserLogin' })
+          } else {
+            router.pushUrl({ url: 'pages/user/AccountIndex' })
+          }
+        })
+
+        Row() {
+          ForEach(this.ToolUI, (v: MyselfUI) => {
+            Column({ space: 8 }) {
+              Image(v.icon)
+                .width(20)
+              Text(v.title)
+                .fontSize(11)
+                .fontWeight(FontWeight.Medium)
+            }
+            .onClick(() => {
+              router.pushUrl({ url: v.url })
+            })
+          })
+        }
+        .backgroundColor(Color.White)
+        .borderRadius(15)
+        .justifyContent(FlexAlign.SpaceAround)
+        .width('90%')
+        .padding(15)
+
+        Column({ space: 5 }) {
+          Column({ space: 20 }) {
+            ForEach(this.myselfUI, (v: MyselfUI) => {
+              if (v.title == '季度卡') {
+                Row({ space: 10 }) {
+                  Image(v.icon)
+                    .width(20)
+                  Column({ space: 3 }) {
+                    Text(v.title)
+                      .fontSize(15)
+                      .fontWeight(FontWeight.Bold)
+                    Text('众多新颖高级功能，祝你养成专注好习惯')
+                      .fontSize(11)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(Color.Gray)
+                  }
+                  .alignItems(HorizontalAlign.Start)
+
+                  Blank()
+                  Image($r('app.media.ic_user_jiantou'))
+                    .width(25)
+                }
+                .width('100%')
+                .onClick(() => {
+                  router.pushUrl({ url: v.url })
+                })
+              } else {
+                Row({ space: 10 }) {
+                  Image(v.icon)
+                    .width(20)
+                  Text(v.title)
+                    .fontSize(15)
+                    .fontWeight(FontWeight.Bold)
+                  Blank()
+                  Image($r('app.media.ic_user_jiantou'))
+                    .width(25)
+                }
+                .width('100%')
+                .onClick(() => {
+                  router.pushUrl({ url: v.url })
+                })
+              }
+            })
+          }
+          .backgroundColor(Color.White)
+          .borderRadius(15)
+          .padding(15)
+          .width('100%')
+        }
+        .alignItems(HorizontalAlign.Start)
+        .margin({ left: 15, right: 15 })
+
+        Column({ space: 20 }) {
+          ForEach(this.ToolsUI, (v: MyselfUI) => {
+            if (v.title == '自定义底栏模块') {
+              Row({ space: 10 }) {
+                Image(v.icon)
+                  .width(20)
+                Text(v.title)
+                  .fontSize(15)
+                  .fontWeight(FontWeight.Bold)
+                Blank()
+                Image($r('app.media.ic_user_jiantou'))
+                  .width(25)
+              }
+              .width('100%')
+              .justifyContent(FlexAlign.Start)
+              .onClick(() => {
+                if (this.dialogChooseNavigationBar != null) {
+                  this.dialogChooseNavigationBar.open()
+                }
+              })
+            } else if (v.title == '主题颜色搭配'){
+
+            }else {
+              Row({ space: 10 }) {
+                Image(v.icon)
+                  .width(20)
+                Text(v.title)
+                  .fontSize(15)
+                  .fontWeight(FontWeight.Bold)
+                Blank()
+                Image($r('app.media.ic_user_jiantou'))
+                  .width(25)
+              }
+              .width('100%')
+              .justifyContent(FlexAlign.Start)
+              .onClick(() => {
+                router.pushUrl({ url: v.url })
+              })
+            }
+          })
+        }
+        .padding(15)
+        .backgroundColor(Color.White)
+        .borderRadius(15)
+        .width('90%')
+
+        Column({ space: 20 }) {
+          Row({ space: 10 }) {
+            Image($r('app.media.ic_user_help'))
+              .width(20)
+            Text('帮助 | 常见问题')
+              .fontSize(15)
+              .fontWeight(FontWeight.Bold)
+            Blank()
+            Image($r('app.media.ic_user_jiantou'))
+              .width(25)
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.Start)
+          .onClick(() => {
+
+          })
+        }
+        .padding(15)
+        .backgroundColor(Color.White)
+        .borderRadius(15)
+        .width('90%')
+      }
+      .width('100%')
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/ToDoPlan/ToDoPlanindex",
+    "pages/user/userIndex",
+    "pages/DoPlan/DoPlanIndex",
+    "pages/AIChat/AIChatIndex",
+    "pages/user/UserLogin",
+    "pages/user/AccountIndex",
+    "pages/Test/TestPage",
+    "pages/DataAnalysis/DataAnalysisIndex",
+    "pages/Test/lineChartTest",
+    "pages/Test/PieChartTest",
+    "pages/Test/McBarChartTest",
+    "pages/user/UserRegister",
+    "pages/user/ResetPassword",
+    "pages/user/Confidential",
+    "pages/user/AbandonPassword",
+    "pages/Setting/Cloud_synchronization",
+    "pages/Test/aiChatTest",
+    "pages/user/VIPcard",
+    "pages/user/tools/FurtherTime",
+    "pages/user/tools/HistoricalRecords",
+    "pages/user/tools/StudyRoom",
+    "pages/user/tools/BellIndex"
+  ]
+}

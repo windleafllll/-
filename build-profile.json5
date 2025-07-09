@@ -1,0 +1,55 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\jack\\.ohos\\config\\default_ToDoPlan_Zjtsa8f0KDgciy7xhd5FpWQGt2n60qwtH95geXy38QI=.cer",
+          "storePassword": "0000001B68AA813D1D2C025FD344FF7A12093426C61B41EDF9AC4394494307CF572581EEC487060E6B5464",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001BF8DE57C736202E0F35BAC864EA10057B7EEECBFA8203A6EEB1491BB7D10F597F6D24DEB34893BC",
+          "profile": "C:\\Users\\jack\\.ohos\\config\\default_ToDoPlan_Zjtsa8f0KDgciy7xhd5FpWQGt2n60qwtH95geXy38QI=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\jack\\.ohos\\config\\default_ToDoPlan_Zjtsa8f0KDgciy7xhd5FpWQGt2n60qwtH95geXy38QI=.p12"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "5.0.5(17)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

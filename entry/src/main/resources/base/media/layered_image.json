@@ -1,0 +1,6 @@
+{
+  "layered-image": {
+    "background": "$media:ic_app_ui",
+    "foreground": "$media:ic_app_ui"
+  }
+}
