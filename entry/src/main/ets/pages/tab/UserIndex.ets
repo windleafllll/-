@@ -1,5 +1,6 @@
 import { router } from '@kit.ArkUI'
 import { chooseNavigationBar } from '../user/tools/Dialogs'
+import { common, Want } from '@kit.AbilityKit'
 
 interface MyselfUI {
   icon: ResourceStr,
@@ -14,6 +15,8 @@ export struct UserIndex {
   @StorageLink('isUserLogin') isLogin: string = '未登录'
   @State sectionWidth: string = '90%'
   @State sectionPadding: number = 15
+  // 待后续开发完善后启用；当前先隐藏“季度卡”相关列表
+  @State enableQuarterCard: boolean = false
   @State myselfUI: MyselfUI[] = [
     {
       icon: $r('app.media.ic_user_vipcard'),
@@ -87,6 +90,18 @@ export struct UserIndex {
     this.sectionPadding = width >= 900 ? 20 : 15
   }
 
+  private openExternalUrl(url: string) {
+    const context = getContext(this) as common.UIAbilityContext
+    const want: Want = {
+      action: 'ohos.want.action.viewData',
+      entities: ['entity.system.browsable'],
+      uri: url
+    }
+    // 启动系统浏览器/浏览组件
+    context.startAbility(want).catch(() => {
+    })
+  }
+
   build() {
     Scroll() {
       Column({ space: 20 }) {
@@ -145,127 +160,155 @@ export struct UserIndex {
         .width(this.sectionWidth)
         .padding(this.sectionPadding)
 
-        Column({ space: 5 }) {
-          Column({ space: 20 }) {
-            ForEach(this.myselfUI, (v: MyselfUI) => {
-              if (v.title == '季度卡') {
-                Row({ space: 10 }) {
-                  Image(v.icon)
-                    .width(20)
-                  Column({ space: 3 }) {
-                    Text(v.title)
-                      .fontSize(15)
-                      .fontWeight(FontWeight.Bold)
-                    Text('众多新颖高级功能，祝你养成专注好习惯')
-                      .fontSize(11)
-                      .fontWeight(FontWeight.Bold)
-                      .fontColor(Color.Gray)
-                  }
-                  .alignItems(HorizontalAlign.Start)
+        Blank()
 
-                  Blank()
-                  Image($r('app.media.ic_user_jiantou'))
-                    .width(25)
-                }
-                .width('100%')
-                .onClick(() => {
-                  router.pushUrl({ url: v.url })
-                })
-              } else {
-                Row({ space: 10 }) {
-                  Image(v.icon)
-                    .width(20)
-                  Text(v.title)
-                    .fontSize(15)
-                    .fontWeight(FontWeight.Bold)
-                  Blank()
-                  Image($r('app.media.ic_user_jiantou'))
-                    .width(25)
-                }
-                .width('100%')
-                .onClick(() => {
-                  router.pushUrl({ url: v.url })
-                })
-              }
+        Row() {
+          Text('测试版本,如有建议或反馈请前往 GitHub：')
+            .fontSize(11)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#111827')
+
+          Text('github.com/windleafllll/-')
+            .fontSize(11)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#2563EB')
+            .onClick(() => {
+              this.openExternalUrl('https://github.com/windleafllll/-')
             })
-          }
-          .backgroundColor(Color.White)
-          .borderRadius(15)
-          .padding(this.sectionPadding)
-          .width('100%')
         }
-        .alignItems(HorizontalAlign.Start)
-        .margin({ left: 15, right: 15 })
-
-        Column({ space: 20 }) {
-          ForEach(this.ToolsUI, (v: MyselfUI) => {
-            if (v.title == '自定义底栏模块') {
-              Row({ space: 10 }) {
-                Image(v.icon)
-                  .width(20)
-                Text(v.title)
-                  .fontSize(15)
-                  .fontWeight(FontWeight.Bold)
-                Blank()
-                Image($r('app.media.ic_user_jiantou'))
-                  .width(25)
-              }
-              .width('100%')
-              .justifyContent(FlexAlign.Start)
-              .onClick(() => {
-                if (this.dialogChooseNavigationBar != null) {
-                  this.dialogChooseNavigationBar.open()
-                }
-              })
-            } else if (v.title == '主题颜色搭配'){
-
-            }else {
-              Row({ space: 10 }) {
-                Image(v.icon)
-                  .width(20)
-                Text(v.title)
-                  .fontSize(15)
-                  .fontWeight(FontWeight.Bold)
-                Blank()
-                Image($r('app.media.ic_user_jiantou'))
-                  .width(25)
-              }
-              .width('100%')
-              .justifyContent(FlexAlign.Start)
-              .onClick(() => {
-                router.pushUrl({ url: v.url })
-              })
-            }
-          })
-        }
-        .padding(15)
-        .backgroundColor(Color.White)
-        .borderRadius(15)
         .width(this.sectionWidth)
+        .margin({
+          top: 10,
+          left: 15,
+          right: 15,
+          bottom: 20
+        })
 
-        Column({ space: 20 }) {
-          Row({ space: 10 }) {
-            Image($r('app.media.ic_user_help'))
-              .width(20)
-            Text('帮助 | 常见问题')
-              .fontSize(15)
-              .fontWeight(FontWeight.Bold)
-            Blank()
-            Image($r('app.media.ic_user_jiantou'))
-              .width(25)
-          }
-          .width('100%')
-          .justifyContent(FlexAlign.Start)
-          .onClick(() => {
-
-          })
-        }
-        .padding(15)
-        .backgroundColor(Color.White)
-        .borderRadius(15)
-        .width(this.sectionWidth)
+        // Column({ space: 5 }) {
+        //   Column({ space: 20 }) {
+        //     ForEach(this.myselfUI, (v: MyselfUI) => {
+        //       // 待后续开发完善后启用；当前隐藏“季度卡开始往下的所有入口”
+        //       if (!this.enableQuarterCard && v.title != '账号') {
+        //         Blank()
+        //       } else if (v.title == '季度卡') {
+        //         Row({ space: 10 }) {
+        //           Image(v.icon)
+        //             .width(20)
+        //           Column({ space: 3 }) {
+        //             Text(v.title)
+        //               .fontSize(15)
+        //               .fontWeight(FontWeight.Bold)
+        //             Text('众多新颖高级功能，祝你养成专注好习惯')
+        //               .fontSize(11)
+        //               .fontWeight(FontWeight.Bold)
+        //               .fontColor(Color.Gray)
+        //           }
+        //           .alignItems(HorizontalAlign.Start)
+        //
+        //           Blank()
+        //           Image($r('app.media.ic_user_jiantou'))
+        //             .width(25)
+        //         }
+        //         .width('100%')
+        //         .onClick(() => {
+        //           router.pushUrl({ url: v.url })
+        //         })
+        //       } else {
+        //         Row({ space: 10 }) {
+        //           Image(v.icon)
+        //             .width(20)
+        //           Text(v.title)
+        //             .fontSize(15)
+        //             .fontWeight(FontWeight.Bold)
+        //           Blank()
+        //           Image($r('app.media.ic_user_jiantou'))
+        //             .width(25)
+        //         }
+        //         .width('100%')
+        //         .onClick(() => {
+        //           router.pushUrl({ url: v.url })
+        //         })
+        //       }
+        //     })
+        //   }
+        //   .backgroundColor(Color.White)
+        //   .borderRadius(15)
+        //   .padding(this.sectionPadding)
+        //   .width('100%')
+        // }
+        // .alignItems(HorizontalAlign.Start)
+        // .margin({ left: 15, right: 15 })
+        //
+        // Column({ space: 20 }) {
+        //   ForEach(this.ToolsUI, (v: MyselfUI) => {
+        //     if (v.title == '自定义底栏模块') {
+        //       Row({ space: 10 }) {
+        //         Image(v.icon)
+        //           .width(20)
+        //         Text(v.title)
+        //           .fontSize(15)
+        //           .fontWeight(FontWeight.Bold)
+        //         Blank()
+        //         Image($r('app.media.ic_user_jiantou'))
+        //           .width(25)
+        //       }
+        //       .width('100%')
+        //       .justifyContent(FlexAlign.Start)
+        //       .onClick(() => {
+        //         if (this.dialogChooseNavigationBar != null) {
+        //           this.dialogChooseNavigationBar.open()
+        //         }
+        //       })
+        //     } else if (v.title == '主题颜色搭配'){
+        //
+        //     }else {
+        //       Row({ space: 10 }) {
+        //         Image(v.icon)
+        //           .width(20)
+        //         Text(v.title)
+        //           .fontSize(15)
+        //           .fontWeight(FontWeight.Bold)
+        //         Blank()
+        //         Image($r('app.media.ic_user_jiantou'))
+        //           .width(25)
+        //       }
+        //       .width('100%')
+        //       .justifyContent(FlexAlign.Start)
+        //       .onClick(() => {
+        //         router.pushUrl({ url: v.url })
+        //       })
+        //     }
+        //   })
+        // }
+        // .padding(15)
+        // .backgroundColor(Color.White)
+        // .borderRadius(15)
+        // .width(this.sectionWidth)
+        //
+        // Column({ space: 20 }) {
+        //   Row({ space: 10 }) {
+        //     Image($r('app.media.ic_user_help'))
+        //       .width(20)
+        //     Text('帮助 | 常见问题')
+        //       .fontSize(15)
+        //       .fontWeight(FontWeight.Bold)
+        //     Blank()
+        //     Image($r('app.media.ic_user_jiantou'))
+        //       .width(25)
+        //   }
+        //   .width('100%')
+        //   .justifyContent(FlexAlign.Start)
+        //   .onClick(() => {
+        //
+        //   })
+        // }
+        // .padding(15)
+        // .backgroundColor(Color.White)
+        // .borderRadius(15)
+        // .width(this.sectionWidth)
       }
       .width('100%')
+      .height('100%')
       .onAreaChange((_, value) => {
         this.updateResponsiveLayout(value.width as number)
       })

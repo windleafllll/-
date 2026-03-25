@@ -68,15 +68,15 @@ struct Index {
       }
       .tabBar(this.TabBuilder('数据分析', 1, $r('app.media.ic_home_shuju_filled'), $r('app.media.ic_home_shuju')))
 
-      TabContent() {
-        AIChat()
-      }
-      .tabBar(this.TabBuilder('计划铺子', 2, $r('app.media.ic_home_puzi_filled'), $r('app.media.ic_home_puzi')))
+      // TabContent() {
+      //   AIChat()
+      // }
+      // .tabBar(this.TabBuilder('计划铺子', 2, $r('app.media.ic_home_puzi_filled'), $r('app.media.ic_home_puzi')))
 
       TabContent() {
         UserIndex()
       }
-      .tabBar(this.TabBuilder('我的', 3, $r('app.media.ic_user_account_filled'), $r('app.media.ic_user_account')))
+      .tabBar(this.TabBuilder('我的', 2, $r('app.media.ic_user_account_filled'), $r('app.media.ic_user_account')))
     }
     .barMode(BarMode.Fixed) // 默认值 Fixed
     .scrollable(false) // 限制滑动

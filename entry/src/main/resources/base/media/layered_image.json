@@ -1,6 +1,6 @@
 {
   "layered-image": {
-    "background": "$media:ic_app_ui",
+    "background": "$media:beijing",
     "foreground": "$media:ic_app_ui"
   }
 }

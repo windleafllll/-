@@ -10,6 +10,8 @@ interface MyselfUI {
 @Component
 struct UserIndex {
   @StorageLink('isUserLogin') isLogin: string = '未登录'
+  // 待后续开发完善后启用；当前先隐藏“季度卡”相关列表
+  @State enableQuarterCard: boolean = false
   @State myselfUI: MyselfUI[] = [
     {
       icon: $r('app.media.ic_user_account'),
@@ -34,7 +36,10 @@ struct UserIndex {
         Text('我的')
         Column({ space: 20 }) {
           ForEach(this.myselfUI, (v: MyselfUI) => {
-            if (v.title == '账号') {
+            // 待后续开发完善后启用；当前隐藏“季度卡开始往下的所有入口”
+            if (!this.enableQuarterCard && v.title != '账号') {
+              Blank()
+            } else if (v.title == '账号') {
               Row({ space: 10 }) {
                 Image(v.icon)
                   .width(25)
@@ -58,6 +63,7 @@ struct UserIndex {
                 }
               })
             } else if (v.title == '季度卡') {
+              // enableQuarterCard==true 才会走到这里
               Row({ space: 10 }) {
                 Image(v.icon)
                   .width(25)

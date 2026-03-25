@@ -269,7 +269,6 @@ struct CustomDialogWishWall {
 @CustomDialog
 struct CustomDialogEditWishWall {
   controllerTwo?: CustomDialogController
-
   // 当前要编辑的愿望
   wishId: string = ''
   userId: number = 0
@@ -277,9 +276,7 @@ struct CustomDialogEditWishWall {
   initialWishName: string = ''
   initialEffort: string = ''
   initialIsRestore: boolean = false
-
   onSubmit?: (payload: WishWallEditPayload) => Promise<void>
-
   @State mode: number = 0 // 0=许愿, 1=还原
   @State wishName: string = ''
   @State effort: string = ''
@@ -299,7 +296,12 @@ struct CustomDialogEditWishWall {
           .fontColor(Color.White)
           .fontWeight(FontWeight.Bold)
           .backgroundColor('#f6726e')
-          .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+          .padding({
+            left: 14,
+            right: 14,
+            top: 6,
+            bottom: 6
+          })
           .borderRadius(999)
       }
       .justifyContent(FlexAlign.Start)
@@ -752,7 +754,8 @@ struct StudyRoom {
     const isRestored = this.isRestoreRecord(w)
     AlertDialog.show({
       title: isRestored ? '删除还愿' : '删除愿望',
-      message: isRestored ? '确定要删除该愿望的还愿记录吗？删除后将恢复为未还愿状态。' : '确定要删除该愿望吗？删除后无法恢复。',
+      message: isRestored ? '确定要删除该愿望的还愿记录吗？删除后将恢复为未还愿状态。' :
+        '确定要删除该愿望吗？删除后无法恢复。',
       primaryButton: {
         value: '取消',
         action: () => {
@@ -798,7 +801,8 @@ struct StudyRoom {
   }
 
   private async onWishWallClick() {
-    if (this.isLogin == '未登录') {
+    // 许愿功能暂时停用登录校验（保留原逻辑，后续需要再开）
+    if (false && this.isLogin == '未登录') {
       this.openNeedLoginDialog()
       return
     }
@@ -829,17 +833,18 @@ struct StudyRoom {
     Navigation() {
       Column() {
         Column() {
-          SegmentButton({
-            options: this.tabOptions,
-            selectedIndexes: $tabSelectedIndexes,
-            onItemClicked: (choose: number) => {
-              this.Choose = choose
-            }
-          })
-            .width('50%')
-            .margin({ bottom: 8 })
+          // SegmentButton({
+          //   options: this.tabOptions,
+          //   selectedIndexes: $tabSelectedIndexes,
+          //   onItemClicked: (choose: number) => {
+          //     this.Choose = choose
+          //   }
+          // })
+          //   .width('50%')
+          //   .margin({ bottom: 8 })
+          //  this.Choose == 0
 
-          if (this.Choose == 0) {
+          if (false) {
             Column({ space: 40 }) {
               Button('创建自习室')
                 .fontWeight(FontWeight.Bold)
