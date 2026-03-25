@@ -3,7 +3,7 @@ import { media } from '@kit.MediaKit';
 class AVPlayerManager {
   private avPlayer: media.AVPlayer | null = null
   private loop: boolean = false
-  private rawFdPath: string = ''
+  private isResetting: boolean = false
 
   async getAVPlayerInstance() {
     // 如果已存在，直接返回
@@ -13,6 +13,7 @@ class AVPlayerManager {
     // 初始化播放器
     const player = await media.createAVPlayer()
     player.on('stateChange', (state) => {
+      console.info(`AVPlayer stateChange: ${state}`)
       switch (state) {
         case 'initialized':
           player.prepare()
@@ -34,7 +35,12 @@ class AVPlayerManager {
           }
           break;
         case 'stopped':
-          player.reset() // stop 时 reset -> 释放音频资源
+          // 正常 stop 时释放资源；如果是 playByRawSrc 内部 reset 过程，则避免触发二次 reset
+          if (this.loop) {
+            player.play()
+          } else if (!this.isResetting) {
+            player.reset()
+          }
           break;
         default:
           break;
@@ -49,7 +55,9 @@ class AVPlayerManager {
     if (rawFdPath) {
       const player = await this.getAVPlayerInstance()
       // 先释放原来的资源
+      this.isResetting = true
       await player.reset()
+      this.isResetting = false
       // 获取文件信息
       const context = getContext()
       // 加载 src/main/resources/rawfile 文件夹中的文件

@@ -129,8 +129,17 @@ struct AccountIndex {
   @StorageLink('UserHead') userHead: string = 'app.media.ic_user_head_1'
   @StorageLink('UserName') userName: string = 'root'
   @StorageLink('isUserLogin') isLogin: string = '已登录'
+  @State cardWidth: string = '45%'
+  @State pagePadding: number = 20
+  @State titleSize: number = 28
   dialogController: CustomDialogController | null = new CustomDialogController({ builder: CustomDialogExample() })
   dialogControllerName: CustomDialogController | null = new CustomDialogController({ builder: CustomDialogUserName() })
+
+  private updateResponsiveLayout(width: number) {
+    this.cardWidth = width >= 900 ? '48%' : '45%'
+    this.pagePadding = width >= 900 ? 28 : 20
+    this.titleSize = width >= 900 ? 32 : 28
+  }
 
   build() {
     Navigation() {
@@ -143,7 +152,7 @@ struct AccountIndex {
             }
           })
         Text(this.userName)
-          .fontSize(28)
+          .fontSize(this.titleSize)
           .fontWeight(FontWeight.Bold)
           .onClick(() => {
             if (this.dialogControllerName != null) {
@@ -158,7 +167,7 @@ struct AccountIndex {
               .fontSize(20)
               .fontWeight(FontWeight.Medium)
           }
-          .width('45%')
+          .width(this.cardWidth)
           .backgroundColor(Color.White)
           .borderRadius(15)
           .padding(10)
@@ -173,7 +182,7 @@ struct AccountIndex {
               .fontSize(20)
               .fontWeight(FontWeight.Medium)
           }
-          .width('45%')
+          .width(this.cardWidth)
           .backgroundColor(Color.White)
           .borderRadius(15)
           .padding(10)
@@ -201,7 +210,10 @@ struct AccountIndex {
           })
       }
       .height('100%')
-      .padding(20)
+      .padding(this.pagePadding)
+      .onAreaChange((_, value) => {
+        this.updateResponsiveLayout(value.width as number)
+      })
     }
     .backgroundColor('#fff1f1f1')
     .title('个人信息')

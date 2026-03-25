@@ -27,6 +27,14 @@ struct ToDoPlanindex {
   @State ID: number | null = null
   // 页面参数
   @State routerParams: RouterParams = {}
+  @State formPadding: number = 24
+  @State compactInputWidth: string = '30%'
+  @StorageLink('PlanChangedAt') planChangedAt: number = 0
+
+  private updateResponsiveLayout(width: number) {
+    this.formPadding = width >= 900 ? 64 : 24
+    this.compactInputWidth = width >= 900 ? '22%' : '30%'
+  }
 
   aboutToAppear(): void {
     const params = router.getParams() as RouterParams
@@ -94,6 +102,7 @@ struct ToDoPlanindex {
       Image($r('app.media.ic_user_cha'))
         .width(20)
         .onClick(() => {
+          this.planChangedAt = Date.now()
           router.back()
         })
       Text('添加待办')
@@ -153,6 +162,7 @@ struct ToDoPlanindex {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               } else {
                 await toDoPlanDB.insert({
@@ -166,6 +176,7 @@ struct ToDoPlanindex {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               }
             } else if (this.event == '养习惯') {
@@ -181,6 +192,7 @@ struct ToDoPlanindex {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               } else {
                 await toDoPlanDB.insert({
@@ -194,6 +206,7 @@ struct ToDoPlanindex {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               }
             } else if (this.event == '定目标') {
@@ -209,6 +222,7 @@ struct ToDoPlanindex {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               } else {
                 await toDoPlanDB.insert({
@@ -222,6 +236,7 @@ struct ToDoPlanindex {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               }
             }
@@ -239,6 +254,7 @@ struct ToDoPlanindex {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               } else {
                 await toDoPlanDB.update({
@@ -252,6 +268,7 @@ struct ToDoPlanindex {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               }
             } else if (this.event == '养习惯') {
@@ -267,6 +284,7 @@ struct ToDoPlanindex {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               } else {
                 await toDoPlanDB.update({
@@ -280,6 +298,7 @@ struct ToDoPlanindex {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               }
             } else if (this.event == '定目标') {
@@ -295,6 +314,7 @@ struct ToDoPlanindex {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               } else {
                 await toDoPlanDB.update({
@@ -308,6 +328,7 @@ struct ToDoPlanindex {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 router.back()
               }
             }
@@ -367,11 +388,11 @@ struct ToDoPlanindex {
             this.timesss = '分钟'
           })
         }
-        .width('70%')
+        .width('100%')
         .justifyContent(FlexAlign.SpaceAround)
 
         TextInput({ placeholder: '请输入事项名称', text: $$this.title })
-          .width('70%')
+          .width('100%')
           .height(35)
           .maxLength(4)
         if (this.event == '养习惯') {
@@ -390,7 +411,7 @@ struct ToDoPlanindex {
               Text('完成')
               TextInput({ text: $$this.timess })
                 .type(InputType.Number)
-                .width('20%')
+                .width(this.compactInputWidth)
                 .height(35)
                 .maxLength(3)
               Select([{ value: '分钟' }, { value: '次' }])
@@ -418,7 +439,7 @@ struct ToDoPlanindex {
               Text('一共完成')
               TextInput({ text: $$this.timess })
                 .type(InputType.Number)
-                .width('20%')
+                .width(this.compactInputWidth)
                 .height(35)
                 .maxLength(3)
               Select([{ value: '分钟' }, { value: '次' }])
@@ -472,14 +493,14 @@ struct ToDoPlanindex {
             }
           })
         }
-        .width('70%')
+        .width('100%')
         .justifyContent(FlexAlign.SpaceAround)
 
         if (this.type == '倒计时') {
           Row() {
             TextInput({ text: $$this.times })
               .type(InputType.Number)
-              .width('20%')
+              .width(this.compactInputWidth)
               .height(35)
               .maxLength(3)
             Text('分钟')
@@ -488,6 +509,10 @@ struct ToDoPlanindex {
           }
         }
       }
+      .padding({ left: this.formPadding, right: this.formPadding, top: 12, bottom: 12 })
+      .onAreaChange((_, value) => {
+        this.updateResponsiveLayout(value.width as number)
+      })
     }
     .backgroundColor('#fff1f1f1')
     .title(this.NavigationTitle())

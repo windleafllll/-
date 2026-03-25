@@ -617,6 +617,16 @@ export struct DataAnalysis {
   @State defOptions3: Options | null = null
   @State defOptions4: Options | null = null
   @State refreshing: boolean = false
+  @State pieChartHeight: number = 280
+  @State chartHeight: number = 260
+
+  private updateChartLayout(width: number) {
+    // 保持全屏铺满，同时限制图表高度，避免在平板上被拉得过高
+    const targetPie = Math.round(width * 0.42)
+    const targetChart = Math.round(width * 0.36)
+    this.pieChartHeight = Math.max(220, Math.min(360, targetPie))
+    this.chartHeight = Math.max(220, Math.min(340, targetChart))
+  }
 
   build() {
     Refresh({ refreshing: $$this.refreshing }) {
@@ -739,7 +749,7 @@ export struct DataAnalysis {
 
             if (this.defOptions1 != null) {
               McPieChart({ options: this.defOptions1 })
-                .height('35%') //设置图表区域的高度
+                .height(this.pieChartHeight)
             }
           }
           .padding(10)
@@ -758,7 +768,7 @@ export struct DataAnalysis {
 
             if (this.defOptions2 != null) {
               McBarChart({ options: this.defOptions2 })
-                .height('30%') //设置图表区域的高度
+                .height(this.chartHeight)
             }
           }
           .padding(10)
@@ -780,7 +790,7 @@ export struct DataAnalysis {
 
             if (this.defOptions3 != null) {
               McLineChart({ options: this.defOptions3 })
-                .height('30%') //设置图表区域的高度
+                .height(this.chartHeight)
             }
           }
           .padding(10)
@@ -802,7 +812,7 @@ export struct DataAnalysis {
 
             if (this.defOptions4 != null) {
               McLineChart({ options: this.defOptions4 })
-                .height('30%') //设置图表区域的高度
+                .height(this.chartHeight)
             }
           }
           .padding(10)
@@ -811,6 +821,9 @@ export struct DataAnalysis {
           .width('100%')
         }
         .padding(15)
+        .onAreaChange((_, value) => {
+          this.updateChartLayout(value.width as number)
+        })
       }
     }
     .onRefreshing(async () => {

@@ -1,3 +1,4 @@
+import { promptAction } from '@kit.ArkUI'
 import { themeManager } from '../manage/ThemeManager'
 import { AIChat } from './tab/AIChat'
 import { DataAnalysis } from './tab/DataAnalysis'
@@ -11,6 +12,8 @@ struct Index {
   @Provide currentIndex: number = 0
   @Provide isPageShow: boolean = false
   @StorageLink('bottomHeight') bottomHeight: number = 10
+  // 执行计划页面锁定：禁止 Tab 切换等“退出界面”行为
+  @StorageLink('InPlanPage') inPlanPage: boolean = false
 
   onPageShow() {
     this.isPageShow = true
@@ -45,6 +48,10 @@ struct Index {
     .border({ width: { top: 1 }, color: '#eee' })
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
+      if (this.inPlanPage) {
+        promptAction.showToast({ message: '请点击结束计划按钮退出' })
+        return
+      }
       this.currentIndex = targetIndex;
     })
   }

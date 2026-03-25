@@ -13,6 +13,11 @@ struct ResetPassword {
   @State secondPassword: string = ''
   @State information: AccountDBInfo[] = []
   @State issue_answer: string = ''
+  @State pagePadding: number = 24
+
+  private updateResponsiveLayout(width: number) {
+    this.pagePadding = width >= 900 ? 72 : 24
+  }
 
   async aboutToAppear() {
     this.information = await accountDB.query(this.user_id)
@@ -23,7 +28,7 @@ struct ResetPassword {
       Column({ space: 20 }) {
         Select([{ value: '通过旧密码重置密码' }, { value: '通过密保重置密码' }])
           .selected($$this.selected)
-          .width('80%')
+          .width('100%')
           .value($$this.selectedValue)
           .onSelect(async (index: number, value: string) => {
             if (index == 0) {
@@ -43,12 +48,16 @@ struct ResetPassword {
           })
         if (this.selected == 0) {
           TextInput({ placeholder: '请输入旧密码', text: $$this.oldPassword })
+            .width('100%')
 
           TextInput({ placeholder: '请输入新密码', text: $$this.firstPassword })
+            .width('100%')
 
           TextInput({ placeholder: '请再次输入新密码', text: $$this.secondPassword })
+            .width('100%')
 
           Button('确定修改')
+            .width('100%')
             .onClick(async () => {
               const a: AccountDBInfo[] = await accountDB.query(this.user_id)
               if (a[0].password == this.oldPassword) {
@@ -84,12 +93,16 @@ struct ResetPassword {
           Text(this.information[0].issue_type)
 
           TextInput({ placeholder: '请输入密保问题答案', text: $$this.issue_answer })
+            .width('100%')
 
           TextInput({ placeholder: '请输入新密码', text: $$this.firstPassword })
+            .width('100%')
 
           TextInput({ placeholder: '请再次输入新密码', text: $$this.secondPassword })
+            .width('100%')
 
           Button('确定修改')
+            .width('100%')
             .onClick(async () => {
               const a: AccountDBInfo[] = await accountDB.query(this.user_id)
               if (a[0].issue_answer == this.issue_answer) {
@@ -124,7 +137,11 @@ struct ResetPassword {
         }
       }
       .alignItems(HorizontalAlign.Start)
-      .width('70%')
+      .width('100%')
+      .padding({ left: this.pagePadding, right: this.pagePadding, top: 16, bottom: 16 })
+      .onAreaChange((_, value) => {
+        this.updateResponsiveLayout(value.width as number)
+      })
     }
     .title('重置密码')
     .titleMode(NavigationTitleMode.Mini)

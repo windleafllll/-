@@ -12,6 +12,8 @@ export struct UserIndex {
   @StorageLink('UserHead') userHead: string = 'app.media.ic_user_head_1'
   @StorageLink('UserName') userName: string = 'root'
   @StorageLink('isUserLogin') isLogin: string = '未登录'
+  @State sectionWidth: string = '90%'
+  @State sectionPadding: number = 15
   @State myselfUI: MyselfUI[] = [
     {
       icon: $r('app.media.ic_user_vipcard'),
@@ -79,6 +81,12 @@ export struct UserIndex {
     width: '80%'
   })
 
+  private updateResponsiveLayout(width: number) {
+    // 全屏铺满下，使用更大留白避免组件在平板显得“横向拉伸”
+    this.sectionWidth = width >= 900 ? '94%' : '90%'
+    this.sectionPadding = width >= 900 ? 20 : 15
+  }
+
   build() {
     Scroll() {
       Column({ space: 20 }) {
@@ -108,7 +116,7 @@ export struct UserIndex {
         .backgroundImage($r('app.media.ic_user_backgroundimage'))
         .backgroundImageSize({ width: '100%', height: '100%' })
         .padding(30)
-        .width('90%')
+        .width(this.sectionWidth)
         .onClick(() => {
           if (this.isLogin == '未登录') {
             router.pushUrl({ url: 'pages/user/UserLogin' })
@@ -134,8 +142,8 @@ export struct UserIndex {
         .backgroundColor(Color.White)
         .borderRadius(15)
         .justifyContent(FlexAlign.SpaceAround)
-        .width('90%')
-        .padding(15)
+        .width(this.sectionWidth)
+        .padding(this.sectionPadding)
 
         Column({ space: 5 }) {
           Column({ space: 20 }) {
@@ -183,7 +191,7 @@ export struct UserIndex {
           }
           .backgroundColor(Color.White)
           .borderRadius(15)
-          .padding(15)
+          .padding(this.sectionPadding)
           .width('100%')
         }
         .alignItems(HorizontalAlign.Start)
@@ -233,7 +241,7 @@ export struct UserIndex {
         .padding(15)
         .backgroundColor(Color.White)
         .borderRadius(15)
-        .width('90%')
+        .width(this.sectionWidth)
 
         Column({ space: 20 }) {
           Row({ space: 10 }) {
@@ -255,9 +263,12 @@ export struct UserIndex {
         .padding(15)
         .backgroundColor(Color.White)
         .borderRadius(15)
-        .width('90%')
+        .width(this.sectionWidth)
       }
       .width('100%')
+      .onAreaChange((_, value) => {
+        this.updateResponsiveLayout(value.width as number)
+      })
     }
   }
 }

@@ -13,6 +13,8 @@ export struct AIChat {
   @StorageLink('UserHead') userHead: string = 'app.media.ic_user_head_1'
   @State message: string = ''
   @State isOver: boolean = false
+  @State horizontalPadding: number = 20
+  @State bubbleWidth: string = '75%'
   @State chat: AIChatDBInfo[] = [
     {
       id: null,
@@ -21,6 +23,23 @@ export struct AIChat {
       date_added: Date.now()
     }
   ]
+  private chatScroller: Scroller = new Scroller()
+
+  private scrollToBottom() {
+    setTimeout(() => {
+      this.chatScroller.scrollEdge(Edge.Bottom)
+    }, 0)
+  }
+
+  private updateResponsiveLayout(width: number) {
+    if (width >= 900) {
+      this.horizontalPadding = 32
+      this.bubbleWidth = '62%'
+    } else {
+      this.horizontalPadding = 20
+      this.bubbleWidth = '75%'
+    }
+  }
 
   async aboutToAppear() {
     const a: AIChatDBInfo[] = await aiChatDB.query()
@@ -29,6 +48,7 @@ export struct AIChat {
     } else {
       aiChatDB.insert(this.chat[0])
     }
+    this.scrollToBottom()
 
   }
 
@@ -61,60 +81,61 @@ export struct AIChat {
 
   build() {
     Navigation() {
-      Scroll() {
-        List({ space: 30 }) {
-          ForEach(this.chat, (v: AIChatDBInfo) => {
-            if (v.spokesperson == 'AI') {
-              ListItem() {
-                Row({ space: 10 }) {
-                  Image($r('app.media.ic_ai_aihead'))
-                    .width('10%')
-                  if (v.content == '') {
-                    LoadingProgress()
-                      .color(Color.Orange)
-                      .width(40)
-                  } else {
-                    Text(v.content)
-                      .width('75%')
-                      .padding(10)
-                      .borderRadius(20)
-                      .backgroundColor(Color.White)
-                  }
-                  Blank()
+      Column() {
+        Scroll(this.chatScroller) {
+          List({ space: 30 }) {
+            ForEach(this.chat, (v: AIChatDBInfo) => {
+              if (v.spokesperson == 'AI') {
+                ListItem() {
+                  Row({ space: 10 }) {
+                    Image($r('app.media.ic_ai_aihead'))
+                      .width('10%')
+                    if (v.content == '') {
+                      LoadingProgress()
+                        .color(Color.Orange)
+                        .width(40)
+                    } else {
+                      Text(v.content)
+                        .width(this.bubbleWidth)
+                        .padding(10)
+                        .borderRadius(20)
+                        .backgroundColor(Color.White)
+                    }
+                    Blank()
 
-                }
-                .alignItems(VerticalAlign.Top)
-                .justifyContent(FlexAlign.SpaceBetween)
-                .width('100%')
-              }
-            } else if (v.spokesperson == 'user') {
-              ListItem() {
-                Row({ space: 10 }) {
-                  Row() {
-                    Text(v.content)
-                      .padding(10)
-                      .borderRadius(20)
-                      .backgroundColor(Color.White)
                   }
+                  .alignItems(VerticalAlign.Top)
+                  .justifyContent(FlexAlign.SpaceBetween)
+                  .width('100%')
+                }
+              } else if (v.spokesperson == 'user') {
+                ListItem() {
+                  Row({ space: 10 }) {
+                    Row() {
+                      Text(v.content)
+                        .padding(10)
+                        .borderRadius(20)
+                        .backgroundColor(Color.White)
+                    }
+                    .justifyContent(FlexAlign.End)
+                    .width(this.bubbleWidth)
+
+                    Image($r(this.userHead))
+                      .width('10%')
+                  }
+                  .alignItems(VerticalAlign.Top)
                   .justifyContent(FlexAlign.End)
-                  .width('75%')
-
-                  Image($r(this.userHead))
-                    .width('10%')
+                  .width('100%')
                 }
-                .alignItems(VerticalAlign.Top)
-                .justifyContent(FlexAlign.End)
-                .width('100%')
               }
-            }
-          })
+            })
+          }
+          .padding({ left: this.horizontalPadding, right: this.horizontalPadding })
+          .width('100%')
         }
-        .height('100%')
-        .padding({ left: 20, right: 20 })
         .width('100%')
-      }
-      .width('100%')
-      .height('86%')
+        .layoutWeight(1)
+        .align(Alignment.TopStart)
 
       Row() {
         Toggle({ type: ToggleType.Button, isOn: $$this.isDoPlan }) {
@@ -162,12 +183,16 @@ export struct AIChat {
             }
           })
       }
-      .padding({ left: 20, right: 20, bottom: 5 })
+      .padding({ left: this.horizontalPadding, right: this.horizontalPadding, bottom: 5 })
       .width('100%')
 
       Row() {
-        TextInput({ text: $$this.inputText })
+        // 多行输入：内容变多后自动换行并增高
+        TextArea({ text: $$this.inputText })
           .width('75%')
+          .maxLines(6)
+          .borderRadius(12)
+          .padding(10)
           .onChange((inputText: String) => {
             if (inputText == '') {
               this.isButton = false
@@ -177,6 +202,7 @@ export struct AIChat {
           })
         Button('发送')
           .backgroundColor('#00b877')
+          .alignSelf(ItemAlign.End)
           .onClick(async () => {
             let inputMethodController = inputMethod.getController();
             inputMethodController.stopInputSession();
@@ -200,6 +226,7 @@ export struct AIChat {
               content: '',
               date_added: Date.now()
             })
+            this.scrollToBottom()
             if (this.isDoPlan) {
               await i(this.inputText +
                 '，必须严格按照以下规则来制定计划：1.计划内容只能包括标题和持续时间，标题最多为四个字，持续时间必须为分钟,标题和持续时间之间只能用：隔开。',
@@ -212,6 +239,7 @@ export struct AIChat {
                     date_added: Date.now()
                   }
                   // 实时更新消息
+                  this.scrollToBottom()
                 }, (isOver) => {
                   this.isOver = isOver
                   aiChatDB.insert({
@@ -220,6 +248,7 @@ export struct AIChat {
                     content: this.message,
                     date_added: Date.now()
                   })
+                  this.scrollToBottom()
                 }, async () => {
                   this.chat[this.chat.length - 1] = {
                     id: null,
@@ -227,6 +256,7 @@ export struct AIChat {
                     content: '服务器连接错误，请重试',
                     date_added: Date.now()
                   }
+                  this.scrollToBottom()
                 })
               this.isCanDoPlan = true
             } else {
@@ -239,6 +269,7 @@ export struct AIChat {
                   date_added: Date.now()
                 }
                 // 实时更新消息
+                this.scrollToBottom()
               }, (isOver) => {
                 this.isOver = isOver
                 aiChatDB.insert({
@@ -247,6 +278,7 @@ export struct AIChat {
                   content: this.message,
                   date_added: Date.now()
                 })
+                this.scrollToBottom()
               }, async () => {
                 this.chat[this.chat.length - 1] = {
                   id: null,
@@ -254,6 +286,7 @@ export struct AIChat {
                   content: '服务器连接错误，请重试',
                   date_added: Date.now()
                 }
+                this.scrollToBottom()
               })
               this.isCanDoPlan = false
             }
@@ -264,7 +297,15 @@ export struct AIChat {
       }
       .justifyContent(FlexAlign.SpaceBetween)
       .width('100%')
-      .padding({ left: 20, right: 20 })
+      .padding({ left: this.horizontalPadding, right: this.horizontalPadding })
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Start)
+      .alignItems(HorizontalAlign.Start)
+      .onAreaChange((_, value) => {
+        this.updateResponsiveLayout(value.width as number)
+      })
     }
     .titleMode(NavigationTitleMode.Mini)
     .title(this.NavigationTitle())

@@ -25,6 +25,7 @@ export struct ToDoPlan {
   @State y3: boolean = false
   @State ID: number | null = null
   @StorageLink('PlanID') PlanID: number = -1
+  @StorageLink('PlanChangedAt') planChangedAt: number = 0
 
   aboutToAppear(): void {
     if (this.PlanID != -1) {
@@ -149,6 +150,7 @@ export struct ToDoPlan {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               } else {
                 await toDoPlanDB.insert({
@@ -162,6 +164,7 @@ export struct ToDoPlan {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               }
             } else if (this.event == '养习惯') {
@@ -177,6 +180,7 @@ export struct ToDoPlan {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               } else {
                 await toDoPlanDB.insert({
@@ -190,6 +194,7 @@ export struct ToDoPlan {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               }
             } else if (this.event == '定目标') {
@@ -205,6 +210,7 @@ export struct ToDoPlan {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               } else {
                 await toDoPlanDB.insert({
@@ -218,6 +224,7 @@ export struct ToDoPlan {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               }
             }
@@ -235,6 +242,7 @@ export struct ToDoPlan {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               } else {
                 await toDoPlanDB.update({
@@ -248,6 +256,7 @@ export struct ToDoPlan {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               }
             } else if (this.event == '养习惯') {
@@ -263,6 +272,7 @@ export struct ToDoPlan {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               } else {
                 await toDoPlanDB.update({
@@ -276,6 +286,7 @@ export struct ToDoPlan {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               }
             } else if (this.event == '定目标') {
@@ -291,6 +302,7 @@ export struct ToDoPlan {
                   times: Number(this.times),
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               } else {
                 await toDoPlanDB.update({
@@ -304,6 +316,7 @@ export struct ToDoPlan {
                   times: null,
                   date_added: Date.now()
                 })
+                this.planChangedAt = Date.now()
                 this.controllerTwo?.close()
               }
             }
@@ -381,6 +394,7 @@ export struct ToDoPlan {
                     times: Number(this.times),
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 } else {
                   await toDoPlanDB.insert({
@@ -394,6 +408,7 @@ export struct ToDoPlan {
                     times: null,
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 }
               } else if (this.event == '养习惯') {
@@ -409,6 +424,7 @@ export struct ToDoPlan {
                     times: Number(this.times),
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 } else {
                   await toDoPlanDB.insert({
@@ -422,6 +438,7 @@ export struct ToDoPlan {
                     times: null,
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 }
               } else if (this.event == '定目标') {
@@ -437,6 +454,7 @@ export struct ToDoPlan {
                     times: Number(this.times),
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 } else {
                   await toDoPlanDB.insert({
@@ -450,6 +468,7 @@ export struct ToDoPlan {
                     times: null,
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 }
               }
@@ -467,6 +486,7 @@ export struct ToDoPlan {
                     times: Number(this.times),
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 } else {
                   await toDoPlanDB.update({
@@ -480,6 +500,7 @@ export struct ToDoPlan {
                     times: null,
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 }
               } else if (this.event == '养习惯') {
@@ -495,6 +516,7 @@ export struct ToDoPlan {
                     times: Number(this.times),
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 } else {
                   await toDoPlanDB.update({
@@ -508,6 +530,7 @@ export struct ToDoPlan {
                     times: null,
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 }
               } else if (this.event == '定目标') {
@@ -523,6 +546,7 @@ export struct ToDoPlan {
                     times: Number(this.times),
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 } else {
                   await toDoPlanDB.update({
@@ -536,6 +560,7 @@ export struct ToDoPlan {
                     times: null,
                     date_added: Date.now()
                   })
+                  this.planChangedAt = Date.now()
                   this.controllerTwo?.close()
                 }
               }

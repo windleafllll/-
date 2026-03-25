@@ -6,11 +6,17 @@ import { accountDB, AccountDBInfo } from '../../database/AccountDB'
 struct UserLogin {
   @State Account: string = ''
   @State password: string = ''
+  @State pagePadding: number = 24
   @StorageLink('isUserLogin') isLogin: string = '未登录'
   @StorageLink('UserHead') userHead: string = 'app.media.ic_user_head_1'
   @StorageLink('UserName') userName: string = 'root'
   @StorageLink('id') user_id: number = 0
   @State Information: AccountDBInfo[] = []
+  @StorageLink('WishWallOpenAfterLogin') wishWallOpenAfterLogin: boolean = false
+
+  private updateResponsiveLayout(width: number) {
+    this.pagePadding = width >= 900 ? 80 : 24
+  }
 
   build() {
     Navigation() {
@@ -25,9 +31,11 @@ struct UserLogin {
 
         TextInput({ placeholder: '请输入账号', text: $$this.Account })
           .type(InputType.Number)
+          .width('100%')
         TextInput({ placeholder: '请输入密码（长度5到20）', text: $$this.password })
           .maxLength(20)
           .type(InputType.NEW_PASSWORD)
+          .width('100%')
         Button('登录')
           .width('100%')
           .onClick(async () => {
@@ -52,7 +60,11 @@ struct UserLogin {
                 issue_type: this.Information[0].issue_type,
                 issue_answer: this.Information[0].issue_answer
               })
-              router.back({ url: 'pages/Index' })
+              if (this.wishWallOpenAfterLogin) {
+                router.pushUrl({ url: 'pages/user/tools/StudyRoom' }, router.RouterMode.Single)
+              } else {
+                router.back({ url: 'pages/Index' })
+              }
               promptAction.showToast({
                 message: '登陆成功'
               })
@@ -75,7 +87,11 @@ struct UserLogin {
         .justifyContent(FlexAlign.SpaceBetween)
         .width('100%')
       }
-      .width('70%')
+      .width('100%')
+      .padding({ left: this.pagePadding, right: this.pagePadding, top: 20, bottom: 20 })
+      .onAreaChange((_, value) => {
+        this.updateResponsiveLayout(value.width as number)
+      })
     }
     .backgroundColor('#fff1f1f1')
     .title('账户登录')
