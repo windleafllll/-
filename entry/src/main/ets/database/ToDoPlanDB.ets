@@ -10,6 +10,8 @@ export interface ToDoPlanDBInfo extends ValuesBucket {
   type: string
   times: number | null
   date_added: number
+  // 计划展示顺序（越小越靠前）
+  sort_order: number | null
 }
 
 class ToDoPlanDB {
@@ -24,7 +26,8 @@ class ToDoPlanDB {
         timesss TEXT,
         type TEXT NOT NULL,
         times INTEGER,
-        date_added INTEGER NOT NULL
+        date_added INTEGER NOT NULL,
+        sort_order INTEGER
       )`
 
   async getStoreInstance() {
@@ -50,12 +53,19 @@ class ToDoPlanDB {
       .then(store => {
         // 执行创建语句，用于创建数据库的表
         store.executeSql(this.sqlCreate)
+        // 兼容旧版本：补齐排序字段
+        store.executeSql(`ALTER TABLE ${this.tableName} ADD COLUMN sort_order INTEGER`)
+          .catch(() => {
+          })
       })
   }
 
   //新增
   async insert(value: ToDoPlanDBInfo) {
     const store = await this.getStoreInstance()
+    if (value.sort_order == null) {
+      value.sort_order = Date.now()
+    }
     return store.insert(this.tableName, value)
   }
 
@@ -63,9 +73,11 @@ class ToDoPlanDB {
   async query(id?: number) {
     const store = await this.getStoreInstance()
     const predicates = new relationalStore.RdbPredicates(this.tableName)
-    if (id) {
+    if (id != undefined) {
       predicates.equalTo('id', id)
     } else {
+      // 默认按用户自定义顺序展示，未设置时再按创建时间兜底
+      predicates.orderByAsc('sort_order')
       predicates.orderByDesc('date_added')
     }
     const resultSet = store.querySync(predicates)
@@ -84,7 +96,22 @@ class ToDoPlanDB {
       const store = await this.getStoreInstance()
       const predicates = new relationalStore.RdbPredicates(this.tableName)
       predicates.equalTo('id', value.id)
-      return store.update(value, predicates)
+      // 编辑计划时，若未显式传入排序值，不覆盖原有 sort_order
+      const vb: ValuesBucket = {
+        id: value.id,
+        title: value.title,
+        event: value.event,
+        time: value.time,
+        timess: value.timess,
+        timesss: value.timesss,
+        type: value.type,
+        times: value.times,
+        date_added: value.date_added
+      }
+      if (value.sort_order != null) {
+        vb.sort_order = value.sort_order
+      }
+      return store.update(vb, predicates)
     }
     return
   }
@@ -95,6 +122,20 @@ class ToDoPlanDB {
     const predicates = new relationalStore.RdbPredicates(this.tableName)
     predicates.equalTo('id', id)
     return store.delete(predicates)
+  }
+
+  async updateSortOrder(id: number, sortOrder: number) {
+    const store = await this.getStoreInstance()
+    const predicates = new relationalStore.RdbPredicates(this.tableName)
+    predicates.equalTo('id', id)
+    const vb: ValuesBucket = { sort_order: sortOrder }
+    return store.update(vb, predicates)
+  }
+
+  async updateSortOrders(orderedIds: number[]) {
+    for (let i = 0; i < orderedIds.length; i++) {
+      await this.updateSortOrder(orderedIds[i], i)
+    }
   }
 }
 

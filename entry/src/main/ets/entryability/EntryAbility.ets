@@ -16,7 +16,7 @@ export default class EntryAbility extends UIAbility {
     // Main window is created, set main page for this ability
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
 
-    windowStage.loadContent('pages/Index', (err) => {
+    windowStage.loadContent('pages/Splash', (err) => {
       if (err.code) {
         hilog.error(0x0000, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
         return;
@@ -40,6 +40,10 @@ export default class EntryAbility extends UIAbility {
       PersistentStorage.persistProp('PlanID', 0)
 
       PersistentStorage.persistProp('ChooseGroup', '')
+
+      // 日历提醒映射：用于修改/删除计划时能删除旧日历事件
+      // 使用持久化存储，避免应用重启后无法清理历史提醒
+      PersistentStorage.persistProp('HabitCalendarMap', '[]')
     });
   }
 

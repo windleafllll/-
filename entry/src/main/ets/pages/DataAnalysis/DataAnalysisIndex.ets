@@ -629,7 +629,7 @@ struct DataAnalysisIndex {
                   .fontSize(11)
                   .fontWeight(FontWeight.Bold)
                 Text('分钟')
-                  .fontSize(7)
+                  .fontSize(8)
                   .fontWeight(FontWeight.Medium)
               }
               .alignItems(VerticalAlign.Bottom)
@@ -644,7 +644,7 @@ struct DataAnalysisIndex {
                   .fontSize(11)
                   .fontWeight(FontWeight.Bold)
                 Text('分钟')
-                  .fontSize(7)
+                  .fontSize(8)
                   .fontWeight(FontWeight.Medium)
               }
               .alignItems(VerticalAlign.Bottom)
@@ -682,7 +682,7 @@ struct DataAnalysisIndex {
                   .fontSize(11)
                   .fontWeight(FontWeight.Bold)
                 Text('分钟')
-                  .fontSize(7)
+                  .fontSize(8)
                   .fontWeight(FontWeight.Medium)
               }
               .alignItems(VerticalAlign.Bottom)
@@ -697,7 +697,7 @@ struct DataAnalysisIndex {
                   .fontSize(11)
                   .fontWeight(FontWeight.Bold)
                 Text('次')
-                  .fontSize(7)
+                  .fontSize(8)
                   .fontWeight(FontWeight.Medium)
               }
               .alignItems(VerticalAlign.Bottom)

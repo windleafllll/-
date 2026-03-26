@@ -72,6 +72,23 @@ class PlanDB {
     return list
   }
 
+  async queryByTitleAndRange(title: string, startTime: number, endTime: number) {
+    const store = await this.getStoreInstance()
+    const predicates = new relationalStore.RdbPredicates(this.tableName)
+    predicates.equalTo('title', title)
+    predicates.greaterThanOrEqualTo('date_added', startTime)
+    predicates.lessThanOrEqualTo('date_added', endTime)
+    predicates.orderByAsc('date_added')
+    const resultSet = store.querySync(predicates)
+    const list: PlanDBInfo[] = []
+    while (resultSet.goToNextRow()) {
+      const item = resultSet.getRow() as PlanDBInfo
+      list.push(item)
+    }
+    resultSet.close()
+    return list
+  }
+
   //修改
   async update(value: PlanDBInfo) {
     if (value.id) {

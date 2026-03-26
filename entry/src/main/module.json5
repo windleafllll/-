@@ -5,6 +5,31 @@
       {
         "name": "ohos.permission.INTERNET"
       },
+      // 系统代理提醒（应用后台/被杀后仍可由系统触发）
+      {
+        "name": "ohos.permission.PUBLISH_AGENT_REMINDER"
+      },
+      // 日历读写（用日历日程的提醒替代代理提醒）
+      {
+        "name": "ohos.permission.READ_CALENDAR",
+        "reason": "$string:perm_reason_read_calendar",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "inuse"
+        }
+      },
+      {
+        "name": "ohos.permission.WRITE_CALENDAR",
+        "reason": "$string:perm_reason_write_calendar",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "inuse"
+        }
+      },
     ],
     "name": "entry",
     "type": "entry",

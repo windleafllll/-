@@ -181,7 +181,7 @@ export struct UserIndex {
           top: 10,
           left: 15,
           right: 15,
-          bottom: 20
+          bottom: 10
         })
 
         // Column({ space: 5 }) {

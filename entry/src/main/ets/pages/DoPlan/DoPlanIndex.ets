@@ -220,6 +220,7 @@ struct DoPlanIndex {
   private marqueeOffset: number = 0
   // 执行计划页锁定：禁止除“结束计划”外的退出行为（至少拦截 Tab 切换）
   @StorageLink('InPlanPage') inPlanPage: boolean = true
+  @StorageLink('PlanChangedAt') planChangedAt: number = 0
 
   aboutToAppear(): void {
     this.inPlanPage = true
@@ -279,6 +280,8 @@ struct DoPlanIndex {
       is_accomplish: this.isAccomplish,
       date_added: Date.now()
     })
+    // 养习惯提醒内容依赖 PlanDB 的完成记录；更新 PlanChangedAt 触发重算日历提醒
+    this.planChangedAt = Date.now()
     clearInterval(this.intervalID1)
     clearInterval(this.intervalID2)
     if (this.marqueeIntervalId != 0) {

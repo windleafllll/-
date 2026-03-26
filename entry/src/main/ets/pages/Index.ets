@@ -1,5 +1,6 @@
 import { promptAction } from '@kit.ArkUI'
 import { themeManager } from '../manage/ThemeManager'
+import { habitReminderManager } from '../manage/HabitReminderManager'
 import { AIChat } from './tab/AIChat'
 import { DataAnalysis } from './tab/DataAnalysis'
 import { HomeTab } from './tab/HomeTab'
@@ -12,12 +13,15 @@ struct Index {
   @Provide currentIndex: number = 0
   @Provide isPageShow: boolean = false
   @StorageLink('bottomHeight') bottomHeight: number = 10
+  @StorageLink('PlanChangedAt') planChangedAt: number = 0
   // 执行计划页面锁定：禁止 Tab 切换等“退出界面”行为
   @StorageLink('InPlanPage') inPlanPage: boolean = false
+  @State private lastPlanChangedAt: number = -1
 
   onPageShow() {
     this.isPageShow = true
     themeManager.enableFullScreen()
+    habitReminderManager.start()
   }
 
   onPageHide() {
@@ -57,34 +61,46 @@ struct Index {
   }
 
   build() {
-    Tabs({ index: this.currentIndex, barPosition: BarPosition.End }) {
-      TabContent() {
-        HomeTab()
-      }
-      .tabBar(this.TabBuilder('首页', 0, $r('app.media.ic_tab_shouye_filled'), $r('app.media.ic_tab_shouye')))
+    Column() {
+      Tabs({ index: this.currentIndex, barPosition: BarPosition.End }) {
+        TabContent() {
+          HomeTab()
+        }
+        .tabBar(this.TabBuilder('首页', 0, $r('app.media.ic_tab_shouye_filled'), $r('app.media.ic_tab_shouye')))
 
-      TabContent() {
-        DataAnalysis()
-      }
-      .tabBar(this.TabBuilder('数据分析', 1, $r('app.media.ic_home_shuju_filled'), $r('app.media.ic_home_shuju')))
+        TabContent() {
+          DataAnalysis()
+        }
+        .tabBar(this.TabBuilder('数据分析', 1, $r('app.media.ic_home_shuju_filled'), $r('app.media.ic_home_shuju')))
 
-      // TabContent() {
-      //   AIChat()
-      // }
-      // .tabBar(this.TabBuilder('计划铺子', 2, $r('app.media.ic_home_puzi_filled'), $r('app.media.ic_home_puzi')))
+        // TabContent() {
+        //   AIChat()
+        // }
+        // .tabBar(this.TabBuilder('计划铺子', 2, $r('app.media.ic_home_puzi_filled'), $r('app.media.ic_home_puzi')))
 
-      TabContent() {
-        UserIndex()
+        TabContent() {
+          UserIndex()
+        }
+        .tabBar(this.TabBuilder('我的', 2, $r('app.media.ic_user_account_filled'), $r('app.media.ic_user_account')))
       }
-      .tabBar(this.TabBuilder('我的', 2, $r('app.media.ic_user_account_filled'), $r('app.media.ic_user_account')))
+      .barMode(BarMode.Fixed) // 默认值 Fixed
+      .scrollable(false) // 限制滑动
+      .padding({ bottom: this.bottomHeight, top: 40 })
+      .linearGradient({
+        direction: GradientDirection.Bottom, // 渐变方向
+        repeating: false, // 渐变颜色是否重复
+        colors: [['#f6726e', 0.0], ['#d4648a', 0.3], ['#bc62aa', 0.5], ['#fff1f1f1', 0.9]] // 数组末尾元素占比小于1时满足重复着色效果
+      })
+
+      if (this.planChangedAt != this.lastPlanChangedAt) {
+        Blank()
+          .onAppear(() => {
+            this.lastPlanChangedAt = this.planChangedAt
+            habitReminderManager.start()
+          })
+      }
     }
-    .barMode(BarMode.Fixed) // 默认值 Fixed
-    .scrollable(false) // 限制滑动
-    .padding({ bottom: this.bottomHeight, top: 40 })
-    .linearGradient({
-      direction: GradientDirection.Bottom, // 渐变方向
-      repeating: false, // 渐变颜色是否重复
-      colors: [['#f6726e', 0.0], ['#d4648a', 0.3], ['#bc62aa', 0.5], ['#fff1f1f1', 0.9]] // 数组末尾元素占比小于1时满足重复着色效果
-    })
+    .width('100%')
+    .height('100%')
   }
 }
