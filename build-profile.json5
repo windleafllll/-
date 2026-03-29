@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "C:\\Users\\jack\\.ohos\\config\\default_ToDoPlan_Zjtsa8f0KDgciy7xhd5FpWQGt2n60qwtH95geXy38QI=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BE5160FED135555215FD7BDDA0379E73AFAE7AA8EFF3ADB8C07ED9DE31D909DADBBB0D465E18383",
-          "profile": "C:\\Users\\jack\\.ohos\\config\\default_ToDoPlan_Zjtsa8f0KDgciy7xhd5FpWQGt2n60qwtH95geXy38QI=.p7b",
+          "storeFile": "E:/ToDoPlanAppKey/Key store/ToDoPlan_Key_Store.p12",
+          "storePassword": "0000001F48E5558DE82327BF82619DF4144AA869323721B2CE28DBB0CA737D8006B37F48C8521DE26197EDB0EE8899",
+          "keyAlias": "ToDoPlan",
+          "keyPassword": "0000001F285E4538562F25BBD9DA4D93673B7B2D0231B9F85A2359E5A9085EE764143B4D1A630DDF04191E722E67C2",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\jack\\.ohos\\config\\default_ToDoPlan_Zjtsa8f0KDgciy7xhd5FpWQGt2n60qwtH95geXy38QI=.p12",
-          "storePassword": "0000001B7EDDDC10FC75FBA22CC7A5F70E388782890D28A02006A49B5F43CB69152AF25A8393A2F23B0084"
+          "profile": "E:/ToDoPlanAppKey/调试证书/杨桃树调试Debug.p7b",
+          "certpath": "E:/ToDoPlanAppKey/调试证书/杨桃树调试.cer"
         }
       }
     ],

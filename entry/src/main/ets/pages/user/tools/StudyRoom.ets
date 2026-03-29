@@ -61,15 +61,15 @@ struct CustomDialogNeedLogin {
   build() {
     Column({ space: 12 }) {
       Text('需要登录后才能许愿/还愿')
-        .fontColor(Color.Black)
+        .fontColor($r('app.color.text_primary'))
         .fontSize(16)
         .fontWeight(FontWeight.Medium)
 
       Row() {
         Button('直接跳转至登陆界面')
           .fontSize(13)
-          .fontColor(Color.White)
-          .backgroundColor(Color.Blue)
+          .fontColor($r('app.color.text_on_brand'))
+          .backgroundColor($r('app.color.brand_primary'))
           .onClick(() => {
             this.onGoLogin?.()
             this.controllerTwo?.close()
@@ -77,8 +77,8 @@ struct CustomDialogNeedLogin {
 
         Button('取消')
           .fontSize(13)
-          .fontColor(Color.Gray)
-          .backgroundColor(Color.White)
+          .fontColor($r('app.color.text_secondary'))
+          .backgroundColor($r('app.color.dialog_button_secondary_bg'))
           .onClick(() => {
             this.controllerTwo?.close()
           })
@@ -89,7 +89,7 @@ struct CustomDialogNeedLogin {
     .padding(18)
     .width('80%')
     .borderRadius(12)
-    .backgroundColor('#fff')
+    .backgroundColor($r('app.color.card_background'))
   }
 }
 
@@ -155,8 +155,8 @@ struct CustomDialogWishWall {
       Row({ space: 16 }) {
         Button('许愿')
           .fontSize(14)
-          .fontColor(this.mode == 0 ? Color.White : '#f6726e')
-          .backgroundColor(this.mode == 0 ? '#f6726e' : Color.White)
+          .fontColor(this.mode == 0 ? $r('app.color.text_on_brand') : $r('app.color.brand_primary'))
+          .backgroundColor(this.mode == 0 ? $r('app.color.brand_primary') : $r('app.color.card_background'))
           .borderRadius(999)
           .height(40)
           .width('45%')
@@ -167,8 +167,8 @@ struct CustomDialogWishWall {
 
         Button('还愿')
           .fontSize(14)
-          .fontColor(this.mode == 1 ? Color.White : '#f6726e')
-          .backgroundColor(this.mode == 1 ? '#f6726e' : Color.White)
+          .fontColor(this.mode == 1 ? $r('app.color.text_on_brand') : $r('app.color.brand_primary'))
+          .backgroundColor(this.mode == 1 ? $r('app.color.brand_primary') : $r('app.color.card_background'))
           .borderRadius(999)
           .height(40)
           .width('45%')
@@ -203,7 +203,7 @@ struct CustomDialogWishWall {
         } else {
           Text('已选择：' + this.getSelectedRestoreName())
             .fontSize(13)
-            .fontColor(Color.Gray)
+            .fontColor($r('app.color.text_secondary'))
             .fontWeight(FontWeight.Medium)
         }
       }
@@ -222,9 +222,9 @@ struct CustomDialogWishWall {
       Button('确认' + (this.mode == 0 ? '许愿' : '还愿'))
         .width('100%')
         .height(44)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.text_on_brand'))
         .fontWeight(FontWeight.Bold)
-        .backgroundColor('#f6726e')
+        .backgroundColor($r('app.color.brand_primary'))
         .onClick(async () => {
           if (this.mode == 0) {
             if (this.wishName == '' || this.wishName == undefined) {
@@ -262,7 +262,7 @@ struct CustomDialogWishWall {
     .padding(18)
     .width('86%')
     .borderRadius(14)
-    .backgroundColor('#fff')
+    .backgroundColor($r('app.color.card_background'))
   }
 }
 
@@ -293,9 +293,9 @@ struct CustomDialogEditWishWall {
       Row() {
         Text(this.mode == 0 ? '许愿编辑' : '还愿编辑')
           .fontSize(13)
-          .fontColor(Color.White)
+          .fontColor($r('app.color.text_on_brand'))
           .fontWeight(FontWeight.Bold)
-          .backgroundColor('#f6726e')
+          .backgroundColor($r('app.color.brand_primary'))
           .padding({
             left: 14,
             right: 14,
@@ -309,7 +309,7 @@ struct CustomDialogEditWishWall {
       Column({ space: 8 }) {
         Text('愿望名称')
           .fontSize(13)
-          .fontColor(Color.Gray)
+          .fontColor($r('app.color.text_secondary'))
           .fontWeight(FontWeight.Medium)
 
         if (this.mode == 0) {
@@ -321,7 +321,7 @@ struct CustomDialogEditWishWall {
           Column() {
             Text(this.wishName)
               .fontSize(15)
-              .fontColor('#9D174D')
+              .fontColor($r('app.color.accent_muted_rose'))
               .fontWeight(FontWeight.Medium)
               .maxLines(2)
               .width('100%')
@@ -329,7 +329,7 @@ struct CustomDialogEditWishWall {
           }
           .width('100%')
           .borderRadius(12)
-          .backgroundColor('#F3F4F6')
+          .backgroundColor($r('app.color.surface_muted'))
         }
       }
 
@@ -337,7 +337,7 @@ struct CustomDialogEditWishWall {
         Column({ space: 8 }) {
           Text('愿望实现付出的努力')
             .fontSize(13)
-            .fontColor(Color.Gray)
+            .fontColor($r('app.color.text_secondary'))
             .fontWeight(FontWeight.Medium)
 
           TextArea({ placeholder: '请输入努力（多行输入）', text: $$this.effort })
@@ -354,9 +354,9 @@ struct CustomDialogEditWishWall {
       Button('确认修改')
         .width('100%')
         .height(44)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.text_on_brand'))
         .fontWeight(FontWeight.Bold)
-        .backgroundColor('#f6726e')
+        .backgroundColor($r('app.color.brand_primary'))
         .onClick(async () => {
           if (this.wishName == '' || this.wishName == undefined) {
             promptAction.showToast({ message: '请输入愿望名称' })
@@ -382,7 +382,7 @@ struct CustomDialogEditWishWall {
     .padding(18)
     .width('86%')
     .borderRadius(14)
-    .backgroundColor('#fff')
+    .backgroundColor($r('app.color.card_background'))
   }
 }
 
@@ -606,13 +606,10 @@ struct StudyRoom {
   }
 
   private async loadWishRecordsFromStorage(): Promise<void> {
-    if (this.user_id <= 0) {
-      this.wishRecords = []
-      return
-    }
-    // SQLite 持久化：直接从 DB 查询并刷新到状态
+    // 未登录时 userId 为 0：许愿仍写入 userId=0，此处必须按 0 查询，否则会“许愿成功但列表不刷新”
+    const uid = this.user_id > 0 ? this.user_id : 0
     try {
-      const list = await wishWallDB.queryByUserId(this.user_id)
+      const list = await wishWallDB.queryByUserId(uid)
       this.wishRecords = list as WishRecord[]
     } catch (e) {
       this.wishRecords = []
@@ -815,17 +812,17 @@ struct StudyRoom {
     Row({ space: 10 }) {
       Image($r('app.media.ic_public_back'))
         .width(30)
-        .fillColor(Color.White)
+        .fillColor($r('app.color.subpage_nav_bar_fg'))
         .onClick(() => {
           router.back()
         })
       Text('自习室 | 许愿墙')
         .fontWeight(FontWeight.Bold)
         .fontSize(18)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.subpage_nav_bar_fg'))
     }
     .width('100%')
-    .backgroundColor('#f6726e')
+    .backgroundColor($r('app.color.subpage_nav_bar_bg'))
     .padding({ left: 15, right: 15 })
   }
 
@@ -860,13 +857,14 @@ struct StudyRoom {
                 .backgroundColor('#A7A8C6')
             }
           } else {
-            Column({ space: 8 }) {
+            Column({ space: 12 }) {
               Button('我要许愿 | 还愿')
-                .fontSize(12)
+                .fontSize(13)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#f6726e')
-                .backgroundColor(Color.White)
+                .fontColor($r('app.color.brand_primary'))
+                .backgroundColor($r('app.color.brand_primary_soft_bg'))
                 .borderRadius(12)
+                .border({ width: 1, color: $r('app.color.brand_primary') })
                 .onClick(async () => {
                   await this.onWishWallClick()
                 })
@@ -878,23 +876,24 @@ struct StudyRoom {
                       Column({ space: 6 }) {
                         Text(this.getWishDisplayTitle(v))
                           .fontSize(15)
-                          .fontColor('#9D174D')
+                          .fontColor($r('app.color.accent_muted_rose'))
                           .fontWeight(FontWeight.Bold)
                           .maxLines(2)
 
                         Text(this.formatTime(v.createdAt))
                           .fontSize(11)
-                          .fontColor('#6B7280')
+                          .fontColor($r('app.color.text_secondary'))
                           .fontWeight(FontWeight.Medium)
                       }
                       .padding({
                         left: 14,
                         right: 14,
-                        top: 4,
+                        top: 10,
                         bottom: 12
                       })
                       .borderRadius(14)
-                      .backgroundColor('#FDF2F8')
+                      .backgroundColor($r('app.color.wish_wall_row_bg'))
+                      .border({ width: 1, color: $r('app.color.input_border') })
                       .width('100%')
                     }
                     .swipeAction({ end: this.deleteWishSwipeAction(v) })
@@ -910,12 +909,17 @@ struct StudyRoom {
                   top: 0,
                   bottom: 30
                 })
-                .backgroundColor('#00000000')
+                .backgroundColor(Color.Transparent)
               } else {
-                Blank()
+                Text('在上方按钮许愿或还愿，记录会显示在这里')
+                  .fontSize(13)
+                  .fontColor($r('app.color.text_secondary'))
+                  .padding({ left: 14, right: 14, top: 8 })
               }
             }
+            .width('100%')
             .height('100%')
+            .padding({ left: 4, right: 4 })
           }
         }
         .height('100%')
@@ -929,7 +933,10 @@ struct StudyRoom {
     .linearGradient({
       direction: GradientDirection.Bottom,
       repeating: false,
-      colors: [['#f6726e', 0.5], ['#fff1f1f1', 0.9]]
+      colors: [
+        [$r('app.color.page_gradient_1'), 0.45],
+        [$r('app.color.page_gradient_end'), 0.92]
+      ]
     })
   }
 }

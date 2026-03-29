@@ -116,6 +116,11 @@ struct DataAnalysisIndex {
       yAxis: {
         //设置y轴的相关样式与功能
         name: '时间（分钟）',
+        nameTextStyle: {
+          color: '#999999',
+          fontSize: 28,
+          fontWeight: '600'
+        },
         axisTick: {
           //刻度线配置
           length: 6, //刻度的长度
@@ -231,8 +236,7 @@ struct DataAnalysisIndex {
         itemWidth: 10, //图形的宽度
         itemHeight: 10, //图形的高度
         textStyle: {
-          //文本样式配置
-          color: '#ff000000', //字体颜色
+          color: '#3C73FF',
           fontSize: 40, //字体大小
           fontWeight: '500' //字体粗细
         }
@@ -268,6 +272,11 @@ struct DataAnalysisIndex {
       //设置Y轴的相关样式与功能
       yAxis: {
         name: '时间（分钟）',
+        nameTextStyle: {
+          color: '#ff838383',
+          fontSize: 35,
+          fontWeight: '500'
+        },
         axisTick: {
           //刻度线配置
           length: 6, //刻度的长度
@@ -346,8 +355,7 @@ struct DataAnalysisIndex {
         itemWidth: 10, //图形的宽度
         itemHeight: 10, //图形的高度
         textStyle: {
-          //文本样式配置
-          color: '#ff000000', //字体颜色
+          color: '#3C73FF',
           fontSize: 40, //字体大小
           fontWeight: '500' //字体粗细
         }
@@ -383,6 +391,11 @@ struct DataAnalysisIndex {
       //设置Y轴的相关样式与功能
       yAxis: {
         name: '时间（分钟）',
+        nameTextStyle: {
+          color: '#ff838383',
+          fontSize: 35,
+          fontWeight: '500'
+        },
         axisTick: {
           //刻度线配置
           length: 6, //刻度的长度
@@ -655,7 +668,7 @@ struct DataAnalysisIndex {
         }
         .padding(10)
         .borderRadius(10)
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
         .width('100%')
         .alignItems(HorizontalAlign.Start)
 
@@ -708,7 +721,7 @@ struct DataAnalysisIndex {
         }
         .padding(10)
         .borderRadius(10)
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
         .width('100%')
         .alignItems(HorizontalAlign.Start)
 
@@ -728,7 +741,7 @@ struct DataAnalysisIndex {
         }
         .padding(10)
         .borderRadius(10)
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
         .width('100%')
 
         Column({ space: 10 }) {
@@ -747,7 +760,7 @@ struct DataAnalysisIndex {
         }
         .padding(10)
         .borderRadius(10)
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
         .width('100%')
 
         Column({ space: 10 }) {
@@ -769,7 +782,7 @@ struct DataAnalysisIndex {
         }
         .padding(10)
         .borderRadius(10)
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
         .width('100%')
 
         Column({ space: 10 }) {
@@ -791,11 +804,12 @@ struct DataAnalysisIndex {
         }
         .padding(10)
         .borderRadius(10)
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
         .width('100%')
       }
+      .width('100%')
       .padding(15)
+      .backgroundColor($r('app.color.list_area_background'))
     }
-    .backgroundColor('#fff1f1f1')
   }
 }

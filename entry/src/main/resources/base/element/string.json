@@ -11,14 +11,6 @@
     {
       "name": "EntryAbility_label",
       "value": "杨桃树"
-    },
-    {
-      "name": "perm_reason_read_calendar",
-      "value": "用于读取系统日历日程，以创建和管理习惯提醒。"
-    },
-    {
-      "name": "perm_reason_write_calendar",
-      "value": "用于向系统日历写入日程并设置提醒，确保应用被杀后仍能提醒用户完成习惯。"
     }
   ]
 }

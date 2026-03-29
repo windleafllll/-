@@ -1,11 +1,44 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
+import { abilityAccessCtrl } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import agconnect from '@hw-agconnect/api-ohos';
+import '@hw-agconnect/core-ohos';
+import { cloudCommon } from '@kit.CloudFoundationKit';
+
+interface BizErrorLike {
+  code?: number
+  message?: string
+}
 
 export default class EntryAbility extends UIAbility {
+  private async requestReminderPermissionOnLaunch(): Promise<void> {
+    try {
+      const atManager = abilityAccessCtrl.createAtManager()
+      await atManager.requestPermissionsFromUser(this.context, ['ohos.permission.PUBLISH_AGENT_REMINDER'])
+    } catch (e) {
+      const biz = e as BizErrorLike
+      hilog.error(0x0000, 'testTag', `request reminder permission failed code=${biz.code ?? -1}, msg=${biz.message ?? 'unknown'}`)
+    }
+  }
+
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onCreate');
+    try {
+      agconnect.instance().init(this.context)
+      hilog.info(0x0000, 'testTag', 'AGConnect init success')
+    } catch (e) {
+      const biz = e as BizErrorLike
+      hilog.error(0x0000, 'testTag', `AGConnect init failed code=${biz.code ?? -1}, msg=${biz.message ?? 'unknown'}`)
+    }
+    try {
+      cloudCommon.init({})
+      hilog.info(0x0000, 'testTag', 'CloudFoundation init success')
+    } catch (e) {
+      const biz = e as BizErrorLike
+      hilog.error(0x0000, 'testTag', `CloudFoundation init failed code=${biz.code ?? -1}, msg=${biz.message ?? 'unknown'}`)
+    }
   }
 
   onDestroy(): void {
@@ -29,6 +62,10 @@ export default class EntryAbility extends UIAbility {
 
       PersistentStorage.persistProp('UserName', 'root')
 
+      PersistentStorage.persistProp('HuaweiLoginInfo', '')
+
+      PersistentStorage.persistProp('CloudUserId', '')
+
       PersistentStorage.persistProp('id', 0)
 
       PersistentStorage.persistProp('isCloud', false)
@@ -41,9 +78,8 @@ export default class EntryAbility extends UIAbility {
 
       PersistentStorage.persistProp('ChooseGroup', '')
 
-      // 日历提醒映射：用于修改/删除计划时能删除旧日历事件
-      // 使用持久化存储，避免应用重启后无法清理历史提醒
-      PersistentStorage.persistProp('HabitCalendarMap', '[]')
+      // 应用启动后主动请求代理提醒权限（首次打开会弹窗）
+      this.requestReminderPermissionOnLaunch()
     });
   }
 

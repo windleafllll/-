@@ -36,7 +36,7 @@ struct Index {
         Image(selectedImg)
           .width(20)
           .aspectRatio(1)
-          .fillColor('#f6726e')
+          .fillColor($r('app.color.brand_primary'))
       } else {
         Image(normalImg)
           .width(20)
@@ -44,12 +44,13 @@ struct Index {
       }
       Text(title)
         .fontSize(10)
-        .fontColor(this.currentIndex === targetIndex ? '#f6726e' : '#0C273D')
+        .fontColor(this.currentIndex === targetIndex ? $r('app.color.tab_text_selected') :
+          $r('app.color.tab_text_normal'))
         .margin({ top: 4 })
     }
     .width('100%')
     .height(56)
-    .border({ width: { top: 1 }, color: '#eee' })
+    .border({ width: { top: 1 }, color: $r('app.color.tab_bar_border') })
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
       if (this.inPlanPage) {
@@ -73,23 +74,29 @@ struct Index {
         }
         .tabBar(this.TabBuilder('数据分析', 1, $r('app.media.ic_home_shuju_filled'), $r('app.media.ic_home_shuju')))
 
-        // TabContent() {
-        //   AIChat()
-        // }
-        // .tabBar(this.TabBuilder('计划铺子', 2, $r('app.media.ic_home_puzi_filled'), $r('app.media.ic_home_puzi')))
+
+        TabContent() {
+          AIChat()
+        }
+        .tabBar(this.TabBuilder('计划铺子', 2, $r('app.media.ic_home_puzi_filled'), $r('app.media.ic_home_puzi')))
 
         TabContent() {
           UserIndex()
         }
-        .tabBar(this.TabBuilder('我的', 2, $r('app.media.ic_user_account_filled'), $r('app.media.ic_user_account')))
+        .tabBar(this.TabBuilder('我的', 3, $r('app.media.ic_user_account_filled'), $r('app.media.ic_user_account')))
       }
       .barMode(BarMode.Fixed) // 默认值 Fixed
       .scrollable(false) // 限制滑动
       .padding({ bottom: this.bottomHeight, top: 40 })
       .linearGradient({
-        direction: GradientDirection.Bottom, // 渐变方向
-        repeating: false, // 渐变颜色是否重复
-        colors: [['#f6726e', 0.0], ['#d4648a', 0.3], ['#bc62aa', 0.5], ['#fff1f1f1', 0.9]] // 数组末尾元素占比小于1时满足重复着色效果
+        direction: GradientDirection.Bottom,
+        repeating: false,
+        colors: [
+          [$r('app.color.page_gradient_1'), 0.0],
+          [$r('app.color.page_gradient_2'), 0.3],
+          [$r('app.color.page_gradient_3'), 0.5],
+          [$r('app.color.page_gradient_end'), 0.9]
+        ]
       })
 
       if (this.planChangedAt != this.lastPlanChangedAt) {

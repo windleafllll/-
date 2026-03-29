@@ -1,6 +1,5 @@
 import { router } from '@kit.ArkUI'
 import { chooseNavigationBar } from '../user/tools/Dialogs'
-import { common, Want } from '@kit.AbilityKit'
 
 interface MyselfUI {
   icon: ResourceStr,
@@ -90,16 +89,8 @@ export struct UserIndex {
     this.sectionPadding = width >= 900 ? 20 : 15
   }
 
-  private openExternalUrl(url: string) {
-    const context = getContext(this) as common.UIAbilityContext
-    const want: Want = {
-      action: 'ohos.want.action.viewData',
-      entities: ['entity.system.browsable'],
-      uri: url
-    }
-    // 启动系统浏览器/浏览组件
-    context.startAbility(want).catch(() => {
-    })
+  private isRemoteAvatar(head: string): boolean {
+    return head.startsWith('http://') || head.startsWith('https://')
   }
 
   build() {
@@ -110,20 +101,29 @@ export struct UserIndex {
             Image($r('app.media.ic_user_account'))
               .width(42)
               .borderRadius(20)
-              .backgroundColor('#79ffffff')
+              .backgroundColor($r('app.color.avatar_ring'))
             Text(this.isLogin)
               .fontWeight(FontWeight.Bold)
               .fontSize(25)
-              .fontColor(Color.White)
+              .fontColor($r('app.color.text_on_gradient_primary'))
           } else {
-            Image($r(this.userHead))
-              .width(42)
-              .borderRadius(20)
-              .backgroundColor('#79ffffff')
+            if (this.isRemoteAvatar(this.userHead)) {
+              Image(this.userHead)
+                .width(42)
+                .height(42)
+                .borderRadius(21)
+                .backgroundColor($r('app.color.avatar_ring'))
+            } else {
+              Image($r(this.userHead))
+                .width(42)
+                .height(42)
+                .borderRadius(21)
+                .backgroundColor($r('app.color.avatar_ring'))
+            }
             Text(this.userName)
               .fontWeight(FontWeight.Bold)
               .fontSize(25)
-              .fontColor(Color.White)
+              .fontColor($r('app.color.text_on_gradient_primary'))
           }
         }
         .margin({ left: 15, right: 15 })
@@ -148,41 +148,39 @@ export struct UserIndex {
               Text(v.title)
                 .fontSize(11)
                 .fontWeight(FontWeight.Medium)
+                .fontColor($r('app.color.text_primary'))
             }
             .onClick(() => {
               router.pushUrl({ url: v.url })
             })
           })
         }
-        .backgroundColor(Color.White)
+        .backgroundColor($r('app.color.card_background'))
         .borderRadius(15)
         .justifyContent(FlexAlign.SpaceAround)
         .width(this.sectionWidth)
         .padding(this.sectionPadding)
 
-        Blank()
-
-        Row() {
-          Text('测试版本,如有建议或反馈请前往 GitHub：')
-            .fontSize(11)
-            .fontWeight(FontWeight.Medium)
-            .fontColor('#111827')
-
-          Text('github.com/windleafllll/-')
-            .fontSize(11)
+        Row({ space: 10 }) {
+          Image($r('app.media.ic_user_yuncunchu'))
+            .width(20)
+          Text('备份|恢复|云同步')
+            .fontSize(15)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#2563EB')
-            .onClick(() => {
-              this.openExternalUrl('https://github.com/windleafllll/-')
-            })
+            .fontColor($r('app.color.text_primary'))
+          Blank()
+          Image($r('app.media.ic_user_jiantou'))
+            .width(20)
         }
+        .backgroundColor($r('app.color.card_background'))
+        .borderRadius(15)
         .width(this.sectionWidth)
-        .margin({
-          top: 10,
-          left: 15,
-          right: 15,
-          bottom: 10
+        .padding(this.sectionPadding)
+        .onClick(() => {
+          router.pushUrl({ url: 'pages/Setting/Cloud_synchronization' })
         })
+
+        Blank()
 
         // Column({ space: 5 }) {
         //   Column({ space: 20 }) {

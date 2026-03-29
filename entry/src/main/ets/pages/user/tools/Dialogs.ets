@@ -9,6 +9,7 @@ export struct chooseNavigationBar {
         Text('自定义主界面功能模块')
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
         Blank()
         Image($r('app.media.ic_user_dui'))
           .width(30)
@@ -32,6 +33,7 @@ export struct chooseNavigationBar {
           Text(v)
             .fontSize(16)
             .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.text_primary'))
           Blank()
           Toggle({ type: ToggleType.Switch, isOn: true })
         }
@@ -41,5 +43,6 @@ export struct chooseNavigationBar {
     .width('100%')
     .padding(15)
     .alignItems(HorizontalAlign.Start)
+    .backgroundColor($r('app.color.card_background'))
   }
 }

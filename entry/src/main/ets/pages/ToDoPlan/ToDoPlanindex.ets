@@ -350,7 +350,7 @@ struct ToDoPlanindex {
     .width('100%')
     .justifyContent(FlexAlign.SpaceBetween)
     .padding(10)
-    .backgroundColor('#fff5f5f5')
+    .backgroundColor($r('app.color.dialog_header_bar'))
   }
 
   build() {
@@ -526,7 +526,7 @@ struct ToDoPlanindex {
         this.updateResponsiveLayout(value.width as number)
       })
     }
-    .backgroundColor('#fff1f1f1')
+    .backgroundColor($r('app.color.list_area_background'))
     .title(this.NavigationTitle())
     .titleMode(NavigationTitleMode.Mini)
     .mode(NavigationMode.Stack)

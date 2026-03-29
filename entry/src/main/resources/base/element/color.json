@@ -3,6 +3,242 @@
     {
       "name": "start_window_background",
       "value": "#FFFFFF"
+    },
+    {
+      "name": "brand_primary",
+      "value": "#f6726e"
+    },
+    {
+      "name": "subpage_nav_bar_bg",
+      "value": "#f6726e"
+    },
+    {
+      "name": "subpage_nav_bar_fg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "brand_primary_soft_bg",
+      "value": "#FFF1F0"
+    },
+    {
+      "name": "text_on_brand",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "tab_text_selected",
+      "value": "#f6726e"
+    },
+    {
+      "name": "tab_text_normal",
+      "value": "#0C273D"
+    },
+    {
+      "name": "tab_bar_border",
+      "value": "#EEEEEE"
+    },
+    {
+      "name": "page_gradient_1",
+      "value": "#f6726e"
+    },
+    {
+      "name": "page_gradient_2",
+      "value": "#d4648a"
+    },
+    {
+      "name": "page_gradient_3",
+      "value": "#bc62aa"
+    },
+    {
+      "name": "page_gradient_end",
+      "value": "#fff1f1f1"
+    },
+    {
+      "name": "splash_gradient_3",
+      "value": "#8B5CF6"
+    },
+    {
+      "name": "splash_overlay_card",
+      "value": "#33000000"
+    },
+    {
+      "name": "text_on_gradient_primary",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "text_on_gradient_muted",
+      "value": "#E5E7EB"
+    },
+    {
+      "name": "text_on_gradient_subtle",
+      "value": "#F9FAFB"
+    },
+    {
+      "name": "card_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#111827"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#6B7280"
+    },
+    {
+      "name": "text_meta_emphasis",
+      "value": "#4B5563"
+    },
+    {
+      "name": "text_destructive",
+      "value": "#C41414"
+    },
+    {
+      "name": "avatar_ring",
+      "value": "#79FFFFFF"
+    },
+    {
+      "name": "overlay_scrim",
+      "value": "#66000000"
+    },
+    {
+      "name": "dialog_shadow",
+      "value": "#33000000"
+    },
+    {
+      "name": "shadow_drag",
+      "value": "#33000000"
+    },
+    {
+      "name": "shadow_none",
+      "value": "#00000000"
+    },
+    {
+      "name": "accent_blue_deep",
+      "value": "#1D4ED8"
+    },
+    {
+      "name": "accent_blue",
+      "value": "#2563EB"
+    },
+    {
+      "name": "tint_blue_light",
+      "value": "#DBEAFE"
+    },
+    {
+      "name": "tint_blue_soft",
+      "value": "#EFF6FF"
+    },
+    {
+      "name": "row_drag_highlight",
+      "value": "#EEF4FF"
+    },
+    {
+      "name": "row_neutral",
+      "value": "#F9FAFB"
+    },
+    {
+      "name": "delete_icon_button_bg",
+      "value": "#FAD4D2"
+    },
+    {
+      "name": "list_area_background",
+      "value": "#fff1f1f1"
+    },
+    {
+      "name": "text_on_image",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "accent_send",
+      "value": "#00b877"
+    },
+    {
+      "name": "accent_send_text",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "dialog_header_bar",
+      "value": "#FFF5F5F5"
+    },
+    {
+      "name": "dialog_frosted_panel",
+      "value": "#D2FFFFFF"
+    },
+    {
+      "name": "dialog_input_surface",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "input_border",
+      "value": "#D1D5DB"
+    },
+    {
+      "name": "wish_wall_row_bg",
+      "value": "#FDF2F8"
+    },
+    {
+      "name": "dialog_button_secondary_bg",
+      "value": "#E8E8E8"
+    },
+    {
+      "name": "dialog_button_secondary_text",
+      "value": "#374151"
+    },
+    {
+      "name": "list_row_selected_bg",
+      "value": "#D0D0D0"
+    },
+    {
+      "name": "brand_warning",
+      "value": "#FA7330"
+    },
+    {
+      "name": "text_hint",
+      "value": "#9CA3AF"
+    },
+    {
+      "name": "surface_muted",
+      "value": "#F3F4F6"
+    },
+    {
+      "name": "accent_muted_rose",
+      "value": "#9D174D"
+    },
+    {
+      "name": "noise_dialog_panel",
+      "value": "#B8FFFFFF"
+    },
+    {
+      "name": "noise_dialog_row",
+      "value": "#7AFFFFFF"
+    },
+    {
+      "name": "noise_dialog_row_selected",
+      "value": "#CCFFF1F0"
+    },
+    {
+      "name": "noise_dialog_border",
+      "value": "#59FFFFFF"
+    },
+    {
+      "name": "noise_dialog_icon_bg",
+      "value": "#66F3F4F6"
+    },
+    {
+      "name": "noise_dialog_icon_selected",
+      "value": "#A0FFF1F0"
+    },
+    {
+      "name": "noise_dialog_close_bg",
+      "value": "#8CFFFFFF"
+    },
+    {
+      "name": "doplan_control_circle_bg",
+      "value": "#E8FFFFFF"
+    },
+    {
+      "name": "doplan_control_circle_border",
+      "value": "#66F6726E"
     }
   ]
 }

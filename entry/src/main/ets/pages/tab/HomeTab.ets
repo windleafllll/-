@@ -1,4 +1,4 @@
-import { router } from '@kit.ArkUI'
+import { LengthMetrics, router } from '@kit.ArkUI'
 import { toDoPlanDB, ToDoPlanDBInfo } from '../../database/ToDoPlanDB'
 import { ToDoPlan } from '../ToDoPlan/ToDoPlan'
 import { planDB, PlanDBInfo } from '../../database/PlanDB'
@@ -185,7 +185,7 @@ struct PlanOrderDialog {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor('#66000000')
+      .backgroundColor($r('app.color.overlay_scrim'))
       .onClick(() => {
         this.controller?.close()
       })
@@ -194,6 +194,7 @@ struct PlanOrderDialog {
         Text('调整计划顺序')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
 
         if (this.list.length > 0) {
           Scroll(this.orderScroller) {
@@ -203,18 +204,19 @@ struct PlanOrderDialog {
                   Row({ space: 10 }) {
                     Text((index + 1).toString())
                       .fontSize(12)
-                      .fontColor('#6B7280')
+                      .fontColor($r('app.color.text_secondary'))
                       .width(22)
 
                     Column({ space: 2 }) {
                       Text(v.title)
                         .fontSize(14)
                         .fontWeight(FontWeight.Medium)
+                        .fontColor($r('app.color.text_primary'))
                         .maxLines(1)
                         .textOverflow({ overflow: TextOverflow.Ellipsis })
                       Text(v.event)
                         .fontSize(11)
-                        .fontColor('#6B7280')
+                        .fontColor($r('app.color.text_secondary'))
                     }
                     .alignItems(HorizontalAlign.Start)
                     .layoutWeight(1)
@@ -224,11 +226,11 @@ struct PlanOrderDialog {
                       Text('拖动')
                         .fontSize(12)
                         .fontWeight(FontWeight.Medium)
-                        .fontColor(this.draggingIndex === index ? '#1D4ED8' : '#2563EB')
+                        .fontColor(this.draggingIndex === index ? $r('app.color.accent_blue_deep') : $r('app.color.accent_blue'))
                     }
                     .padding({ left: 8, right: 8, top: 6, bottom: 6 })
                     .borderRadius(999)
-                    .backgroundColor(this.draggingIndex === index ? '#DBEAFE' : '#EFF6FF')
+                    .backgroundColor(this.draggingIndex === index ? $r('app.color.tint_blue_light') : $r('app.color.tint_blue_soft'))
                     .gesture(
                       PanGesture({ direction: PanDirection.Vertical, distance: 1 })
                         .onActionStart(() => {
@@ -259,7 +261,7 @@ struct PlanOrderDialog {
                   }
                   .padding(10)
                   .borderRadius(10)
-                  .backgroundColor(this.draggingIndex === index ? '#EEF4FF' : '#F9FAFB')
+                  .backgroundColor(this.draggingIndex === index ? $r('app.color.row_drag_highlight') : $r('app.color.row_neutral'))
                   .translate({
                     x: 0,
                     y: this.draggingIndex === index ? (this.dragOffsetY + this.dragFollowCompY) : this.getItemShiftY(index)
@@ -267,12 +269,12 @@ struct PlanOrderDialog {
                   .scale({ x: this.draggingIndex === index ? 1.02 : 1, y: this.draggingIndex === index ? 1.02 : 1 })
                   .shadow(this.draggingIndex === index ? {
                     radius: 18,
-                    color: '#33000000',
+                    color: $r('app.color.shadow_drag'),
                     offsetX: 0,
                     offsetY: 8
                   } : {
                     radius: 0,
-                    color: '#00000000',
+                    color: $r('app.color.shadow_none'),
                     offsetX: 0,
                     offsetY: 0
                   })
@@ -291,19 +293,19 @@ struct PlanOrderDialog {
           })
         } else {
           Text('暂无计划')
-            .fontColor('#6B7280')
+            .fontColor($r('app.color.text_secondary'))
             .fontSize(12)
         }
 
         Row({ space: 12 }) {
           Button('取消', { buttonStyle: ButtonStyleMode.TEXTUAL })
-            .fontColor('#6B7280')
+            .fontColor($r('app.color.text_secondary'))
             .onClick(() => {
               this.controller?.close()
             })
 
           Button('保存', { buttonStyle: ButtonStyleMode.TEXTUAL })
-            .fontColor('#f6726e')
+            .fontColor($r('app.color.brand_primary'))
             .fontWeight(FontWeight.Bold)
             .onClick(async () => {
               const ids = this.buildOrderedIds()
@@ -316,9 +318,9 @@ struct PlanOrderDialog {
       }
       .width(this.dialogWidth ?? '88%')
       .borderRadius(16)
-      .backgroundColor(Color.White)
+      .backgroundColor($r('app.color.card_background'))
       .padding(16)
-      .shadow({ radius: 24, color: '#33000000', offsetX: 0, offsetY: 10 })
+      .shadow({ radius: 24, color: $r('app.color.dialog_shadow'), offsetX: 0, offsetY: 10 })
       .onClick(() => {
         // 吃掉面板内点击，避免触发遮罩关闭
       })
@@ -332,8 +334,10 @@ struct PlanOrderDialog {
 export struct HomeTab {
   dialogToDoPlan: CustomDialogController | null = new CustomDialogController({
     builder: ToDoPlan(),
-    cornerRadius: 15,
-    width: '80%'
+    customStyle: true,
+    cornerRadius: 20,
+    width: '88%',
+    keyboardAvoidDistance: LengthMetrics.vp(32)
   })
   @State refreshing: boolean = true
   @StorageLink('PlanID') PlanID: number = -1
@@ -364,12 +368,13 @@ export struct HomeTab {
     Button() {
       Image($r('app.media.ic_user_cha'))
         .width(20)
+        .fillColor($r('app.color.brand_primary'))
     }
     .width(40)
     .height(40)
     .type(ButtonType.Circle)
     .margin(5)
-    .backgroundColor('#a62dceff')
+    .backgroundColor($r('app.color.delete_icon_button_bg'))
     .onClick(async () => {
       await this.deleteToDoPlan(id)
       this.queryToDoPlan()
@@ -523,7 +528,9 @@ export struct HomeTab {
         Blank()
 
         Image($r('app.media.ic_user_jiahao'))
-          .height(18)
+          .width(22)
+          .height(22)
+          .fillColor($r('app.color.text_on_gradient_primary'))
           .onClick(() => {
             if (this.dialogToDoPlan != null) {
               this.PlanID = -1
@@ -532,7 +539,9 @@ export struct HomeTab {
           })
 
         Image($r('app.media.ic_user_gengduo'))
-          .height(18)
+          .width(22)
+          .height(22)
+          .fillColor($r('app.color.text_on_gradient_primary'))
           .onClick(async () => {
             await this.openOrderDialog()
           })
@@ -551,14 +560,14 @@ export struct HomeTab {
                       Row() {
                         Column({ space: this.cardInnerSpace }) {
                           Text(v.title)
-                            .fontColor(Color.White)
+                            .fontColor($r('app.color.text_on_image'))
                             .fontSize(this.titleFontSize)
                             .fontWeight(FontWeight.Bold)
                             .maxLines(1)
                             .textOverflow({ overflow: TextOverflow.Ellipsis })
                           if (v.times) {
                             Text('单次 ' + v.times.toString() + ' 分钟')
-                              .fontColor(Color.White)
+                              .fontColor($r('app.color.text_on_image'))
                               .fontSize(this.metaFontSize)
                               .fontWeight(FontWeight.Medium)
                           }
@@ -567,7 +576,7 @@ export struct HomeTab {
                         .layoutWeight(1)
 
                         Button('开始', { buttonStyle: ButtonStyleMode.TEXTUAL })
-                          .fontColor(Color.White)
+                          .fontColor($r('app.color.text_on_image'))
                           .fontWeight(FontWeight.Bold)
                           .onClick(() => {
                             router.pushUrl({ url: 'pages/DoPlan/DoPlanIndex', params: { id: v.id } })
@@ -584,7 +593,7 @@ export struct HomeTab {
                       Row() {
                         Column({ space: this.cardInnerSpace }) {
                           Text(v.title)
-                            .fontColor(Color.White)
+                            .fontColor($r('app.color.text_on_image'))
                             .fontSize(this.titleFontSize)
                             .fontWeight(FontWeight.Bold)
                             .maxLines(1)
@@ -592,18 +601,18 @@ export struct HomeTab {
 
                           Row({ space: 10 }) {
                             Text('计划 ' + v.time)
-                              .fontColor(Color.White)
+                              .fontColor($r('app.color.text_on_image'))
                               .fontSize(this.metaFontSize)
                               .fontWeight(FontWeight.Medium)
                             Text('目标 ' + v.timess + v.timesss)
-                              .fontColor(Color.White)
+                              .fontColor($r('app.color.text_on_image'))
                               .fontSize(this.metaFontSize)
                               .fontWeight(FontWeight.Medium)
                           }
 
                           if (this.findProgressText(v.id) !== '') {
                             Text(this.findProgressText(v.id))
-                              .fontColor(Color.White)
+                              .fontColor($r('app.color.text_on_image'))
                               .fontSize(this.metaFontSize)
                               .fontWeight(FontWeight.Medium)
                               .maxLines(1)
@@ -614,7 +623,7 @@ export struct HomeTab {
                         .layoutWeight(1)
 
                         Button('开始', { buttonStyle: ButtonStyleMode.TEXTUAL })
-                          .fontColor(Color.White)
+                          .fontColor($r('app.color.text_on_image'))
                           .fontWeight(FontWeight.Bold)
                           .onClick(() => {
                             router.pushUrl({ url: 'pages/DoPlan/DoPlanIndex', params: { id: v.id } })
@@ -630,7 +639,7 @@ export struct HomeTab {
                       Row() {
                         Column({ space: this.cardInnerSpace }) {
                           Text(v.title)
-                            .fontColor(Color.White)
+                            .fontColor($r('app.color.text_on_image'))
                             .fontSize(this.titleFontSize)
                             .fontWeight(FontWeight.Bold)
                             .maxLines(1)
@@ -638,18 +647,18 @@ export struct HomeTab {
 
                           Row({ space: 10 }) {
                             Text('截止 ' + v.time)
-                              .fontColor(Color.White)
+                              .fontColor($r('app.color.text_on_image'))
                               .fontSize(this.metaFontSize)
                               .fontWeight(FontWeight.Medium)
                             Text('目标 ' + v.timess + v.timesss)
-                              .fontColor(Color.White)
+                              .fontColor($r('app.color.text_on_image'))
                               .fontSize(this.metaFontSize)
                               .fontWeight(FontWeight.Medium)
                           }
 
                           if (this.findProgressText(v.id) !== '') {
                             Text(this.findProgressText(v.id))
-                              .fontColor(Color.White)
+                              .fontColor($r('app.color.text_on_image'))
                               .fontSize(this.metaFontSize)
                               .fontWeight(FontWeight.Medium)
                               .maxLines(1)
@@ -660,7 +669,7 @@ export struct HomeTab {
                         .layoutWeight(1)
 
                         Button('开始', { buttonStyle: ButtonStyleMode.TEXTUAL })
-                          .fontColor(Color.White)
+                          .fontColor($r('app.color.text_on_image'))
                           .fontWeight(FontWeight.Bold)
                           .onClick(() => {
                             router.pushUrl({ url: 'pages/DoPlan/DoPlanIndex', params: { id: v.id } })
@@ -700,13 +709,25 @@ export struct HomeTab {
       }
       .padding(this.pagePadding)
       .width('100%')
-      .backgroundColor('#fff1f1f1')
+      .layoutWeight(1)
+      .linearGradient({
+        direction: GradientDirection.Bottom,
+        repeating: false,
+        colors: [
+          [$r('app.color.page_gradient_2'), 0.0],
+          [$r('app.color.page_gradient_3'), 0.12],
+          [$r('app.color.page_gradient_end'), 0.4],
+          [$r('app.color.list_area_background'), 0.78],
+          [$r('app.color.list_area_background'), 1.0]
+        ]
+      })
       .onRefreshing(async () => {
         await this.queryToDoPlan()
         this.refreshing = false
       })
     }
     .width('100%')
+    .height('100%')
     .onAreaChange((_, value) => {
       this.updateResponsiveSpacing(value.width as number)
     })

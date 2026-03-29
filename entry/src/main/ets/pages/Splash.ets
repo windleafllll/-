@@ -37,31 +37,17 @@ struct Splash {
         Text('杨桃树')
           .fontSize(40)
           .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
+          .fontColor($r('app.color.text_on_gradient_primary'))
 
         Text('专注 · 计划 · 成长')
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#E5E7EB')
+          .fontColor($r('app.color.text_on_gradient_muted'))
 
-        Row({ space: 8 }) {
-          Text('测试版 App')
-            .fontSize(12)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#f6726e')
-            .padding({
-              left: 10,
-              right: 10,
-              top: 4,
-              bottom: 4
-            })
-            .backgroundColor('#FFF1F0')
-            .borderRadius(999)
-          Text('欢迎体验，如有建议欢迎反馈')
-            .fontSize(12)
-            .fontWeight(FontWeight.Medium)
-            .fontColor('#F9FAFB')
-        }
+        Text('欢迎体验，如有建议欢迎反馈')
+          .fontSize(12)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.text_on_gradient_subtle'))
       }
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
@@ -73,7 +59,7 @@ struct Splash {
         right: 20
       })
       .borderRadius(20)
-      .backgroundColor('#33000000')
+      .backgroundColor($r('app.color.splash_overlay_card'))
     }
     .width('100%')
     .height('100%')
@@ -81,7 +67,11 @@ struct Splash {
     .linearGradient({
       direction: GradientDirection.Bottom,
       repeating: false,
-      colors: [['#f6726e', 0.0], ['#d4648a', 0.35], ['#8B5CF6', 1.0]]
+      colors: [
+        [$r('app.color.page_gradient_1'), 0.0],
+        [$r('app.color.page_gradient_2'), 0.35],
+        [$r('app.color.splash_gradient_3'), 1.0]
+      ]
     })
   }
 }

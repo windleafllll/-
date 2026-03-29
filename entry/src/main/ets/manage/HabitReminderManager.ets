@@ -1,7 +1,7 @@
 import { reminderAgentManager } from '@kit.BackgroundTasksKit'
-import { abilityAccessCtrl } from '@kit.AbilityKit'
+import { abilityAccessCtrl, common } from '@kit.AbilityKit'
 import { notificationManager } from '@kit.NotificationKit'
-import { calendarManager } from '@kit.CalendarKit'
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { toDoPlanDB, ToDoPlanDBInfo } from '../database/ToDoPlanDB'
 import { planDB, PlanDBInfo } from '../database/PlanDB'
 
@@ -24,18 +24,31 @@ interface ValidReminderCompat {
   reminderId?: number
   id?: number
   requestId?: number
+  reminderType?: number
+  title?: string
+  content?: string
+  triggerTimeInSeconds?: number
+  hour?: number
+  minute?: number
+  year?: number
+  month?: number
+  day?: number
 }
 
 interface PublishCandidate {
   planId: string
   triggerAt: number
+  planType: string
   title: string
   content: string
 }
 
-interface CalendarMapItem {
-  planId: string
-  eventIds: number[]
+interface MergedPublishCandidate {
+  triggerAt: number
+  planIds: string[]
+  planTypes: string[]
+  titles: string[]
+  contents: string[]
 }
 
 interface YMDParts {
@@ -131,8 +144,15 @@ class HabitReminderManager {
     const req = {
       reminderType: reminderAgentManager.ReminderType.REMINDER_TYPE_TIMER,
       triggerTimeInSeconds: 10,
+      ringDuration: 15,
       title: '提醒测试',
-      content: '10秒后代理提醒（可杀进程验证）'
+      content: '10秒后代理提醒（可杀进程验证）',
+      notificationId: 990011,
+      slotType: notificationManager.SlotType.CONTENT_INFORMATION,
+      wantAgent: {
+        pkgName: 'com.example.todoplan',
+        abilityName: 'EntryAbility'
+      }
     } as reminderAgentManager.ReminderRequest
     try {
       const id = await (reminderAgentManager.publishReminder(req) as Promise<number>)
@@ -146,72 +166,92 @@ class HabitReminderManager {
     }
   }
 
-  async testCalendarReminder10s(): Promise<string> {
-    const ok = await this.ensureCalendarPermission()
-    if (!ok) {
-      return '日历权限未授予'
+  // 按官方文档流程：定义 Timer 类型 ReminderRequest 后直接发布
+  async runOfficialTimerTest10s(): Promise<string> {
+    const notifyGranted = await this.ensureNotificationPermission()
+    if (!notifyGranted) {
+      return '通知权限未授予，已尝试打开通知设置页，请手动允许后重试'
     }
+    const granted = await this.ensureReminderPermission()
+    if (!granted) {
+      return '代理提醒权限未授予'
+    }
+    const context = getContext() as common.UIAbilityContext
+    const timer = {
+      reminderType: reminderAgentManager.ReminderType.REMINDER_TYPE_TIMER,
+      ringDuration: 15,
+      title: '计时器',
+      content: '计时器已结束',
+      wantAgent: {
+        pkgName: 'com.example.todoplan',
+        abilityName: 'EntryAbility'
+      },
+      notificationId: 990012,
+      slotType: notificationManager.SlotType.CONTENT_INFORMATION,
+      triggerTimeInSeconds: 10
+    } as reminderAgentManager.ReminderRequestTimer
     try {
-      const now = Date.now()
-      const start = now + 10 * 1000
-      const end = start + 30 * 60 * 1000
-      const cal = await this.getDefaultCalendar()
-      // 若用户已创建“养习惯”，则为每个养习惯创建 10 秒后提醒（便于你杀进程验证）
-      const all = await toDoPlanDB.query()
-      const habits: ToDoPlanDBInfo[] = []
-      for (let i = 0; i < all.length; i++) {
-        if (all[i].event === '养习惯') {
-          habits.push(all[i])
-        }
+      // keep context variable to match official pattern and avoid accidental removal
+      if (!context.abilityInfo.name.length) {
       }
-      await this.clearAllCalendarEvents()
-      const newMap: CalendarMapItem[] = []
-
-      if (habits.length > 0) {
-        for (let i = 0; i < habits.length; i++) {
-          const plan = habits[i]
-          const freq = plan.time ?? '每天'
-          const content = await this.buildReminderContent(plan, freq, start)
-          const title = `习惯提醒：${plan.title}`
-          const event = {
-            type: calendarManager.EventType.NORMAL,
-            title: title,
-            startTime: start,
-            endTime: end,
-            reminderTime: [0],
-            description: content
-          } as calendarManager.Event
-          const id = await (cal.addEvent(event) as Promise<number>)
-          const planId = String(plan.id ?? '')
-          if (planId !== '') {
-            newMap.push({ planId: planId, eventIds: [id] })
-          }
-        }
-        this.saveCalendarMap(newMap)
-        return `已创建养习惯日历提醒 ${habits.length} 条（10秒后提醒）`
-      }
-
-      // 没有养习惯时，创建通用日历提醒
-      const event = {
-        type: calendarManager.EventType.NORMAL,
-        title: '杨桃树-日历提醒测试',
-        startTime: start,
-        endTime: end,
-        reminderTime: [0],
-        description: '10秒后触发（通过系统日历提醒）'
-      } as calendarManager.Event
-      const id = await (cal.addEvent(event) as Promise<number>)
-      this.saveCalendarMap([{ planId: '0', eventIds: [id] }])
-      return `日历测试事件已创建，eventId=${id}（10秒后提醒）`
+      const reminderId: number = await (reminderAgentManager.publishReminder(timer) as Promise<number>)
+      hilog.info(0x0000, 'HabitReminder', `publish reminder result: id is ${reminderId}`)
+      AppStorage.setOrCreate('TestReminderId', reminderId)
+      return `已发布代理提醒，ID=${reminderId}，10秒后触发`
     } catch (e) {
-      return `创建日历提醒失败: ${this.parseError(e as Object)}`
+      return `代理提醒发布失败: ${this.parseError(e as Object)}`
     }
   }
 
-  // 给“清理提醒池”按钮用：清理本应用创建的日历提醒事件
-  async forceClearAllCalendarReminders(): Promise<string> {
-    const cancelled = await this.clearAllCalendarEvents()
-    return `已清理日历提醒 ${cancelled} 条`
+  async clearAllAgentRemindersForTest(): Promise<string> {
+    const granted = await this.ensureReminderPermission()
+    if (!granted) {
+      return '代理提醒权限未授予'
+    }
+    try {
+      await reminderAgentManager.cancelAllReminders()
+      AppStorage.setOrCreate('TestReminderId', 0)
+      return '已清空本应用代理提醒'
+    } catch (e) {
+      return `清空代理提醒失败: ${this.parseError(e as Object)}`
+    }
+  }
+
+  async inspectValidAgentReminders(): Promise<string> {
+    try {
+      // 先执行一次同步，确保查看结果与当前计划状态一致
+      await this.trySync(true, false)
+      const list = await (reminderAgentManager.getValidReminders() as Promise<ValidReminderCompat[]>)
+      if (list.length == 0) {
+        return '当前无有效代理提醒'
+      }
+      let text = `有效代理提醒 ${list.length} 条`
+      const show = list.length > 3 ? 3 : list.length
+      for (let i = 0; i < show; i++) {
+        const r = list[i]
+        const rid = this.pickReminderId(r)
+        const t = r.title ?? '无标题'
+        const c = r.content ?? ''
+        const typeText = `${r.reminderType ?? -1}`
+        let timeText = ''
+        if (r.triggerTimeInSeconds != undefined) {
+          timeText = `倒计时:${r.triggerTimeInSeconds}s`
+        } else if (r.hour != undefined && r.minute != undefined) {
+          timeText = `时刻:${r.hour}:${r.minute}`
+        } else if (r.year != undefined && r.month != undefined && r.day != undefined) {
+          timeText = `日期:${r.year}-${r.month}-${r.day}`
+        } else {
+          timeText = '时间:未知'
+        }
+        text += `\n#${i + 1} id=${rid} type=${typeText} ${timeText}\n${t} ${c}`
+      }
+      if (list.length > show) {
+        text += `\n...其余 ${list.length - show} 条省略`
+      }
+      return text
+    } catch (e) {
+      return `查询代理提醒失败: ${this.parseError(e as Object)}`
+    }
   }
 
   async clearAllKnownReminders(): Promise<string> {
@@ -288,6 +328,69 @@ class HabitReminderManager {
     return `code=${codeText}, msg=${msgText}`
   }
 
+  private pushMergedCandidate(list: MergedPublishCandidate[], c: PublishCandidate) {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].triggerAt === c.triggerAt) {
+        list[i].planIds.push(c.planId)
+        list[i].planTypes.push(c.planType)
+        list[i].titles.push(c.title)
+        list[i].contents.push(c.content)
+        return
+      }
+    }
+    list.push({
+      triggerAt: c.triggerAt,
+      planIds: [c.planId],
+      planTypes: [c.planType],
+      titles: [c.title],
+      contents: [c.content]
+    })
+  }
+
+  private upsertReminderMapItem(map: ReminderMapItem[], planId: string, reminderId: number) {
+    for (let i = 0; i < map.length; i++) {
+      if (map[i].planId === planId) {
+        map[i].reminderIds.push(reminderId)
+        return
+      }
+    }
+    map.push({ planId: planId, reminderIds: [reminderId] })
+  }
+
+  private buildMergedContent(titles: string[]): string {
+    if (titles.length == 0) {
+      return '请按时完成计划'
+    }
+    if (titles.length == 1) {
+      return `请按时完成：${titles[0]}`
+    }
+    const maxShow = titles.length > 6 ? 6 : titles.length
+    let text = '请按时完成：'
+    for (let i = 0; i < maxShow; i++) {
+      if (i > 0) {
+        text += '、'
+      }
+      text += titles[i]
+    }
+    if (titles.length > maxShow) {
+      text += ` 等${titles.length}项`
+    }
+    return text
+  }
+
+  private allSameType(types: string[]): boolean {
+    if (types.length <= 1) {
+      return true
+    }
+    const first = types[0]
+    for (let i = 1; i < types.length; i++) {
+      if (types[i] != first) {
+        return false
+      }
+    }
+    return true
+  }
+
   private async ensureReminderPermission(): Promise<boolean> {
     try {
       const atManager = abilityAccessCtrl.createAtManager()
@@ -303,69 +406,19 @@ class HabitReminderManager {
     }
   }
 
-  private async ensureCalendarPermission(): Promise<boolean> {
+  private async ensureNotificationPermission(): Promise<boolean> {
     try {
-      const atManager = abilityAccessCtrl.createAtManager()
-      const ctx = getContext()
-      const grant = await atManager.requestPermissionsFromUser(ctx, ['ohos.permission.READ_CALENDAR', 'ohos.permission.WRITE_CALENDAR'])
-      const arr = grant?.authResults
-      if (arr && arr.length > 0) {
-        return arr[0] === 0 && arr[1] === 0
-      }
+      const ctx = getContext() as common.UIAbilityContext
+      await notificationManager.requestEnableNotification(ctx)
       return true
     } catch (_e) {
+      try {
+        const ctx = getContext() as common.UIAbilityContext
+        notificationManager.openNotificationSettings(ctx)
+      } catch (_) {
+      }
       return false
     }
-  }
-
-  private async getDefaultCalendar(): Promise<calendarManager.Calendar> {
-    const mgr = calendarManager.getCalendarManager(getContext())
-    return await mgr.getCalendar()
-  }
-
-  private getCalendarMap(): CalendarMapItem[] {
-    const raw = AppStorage.get('HabitCalendarMap') as string
-    if (!raw) {
-      return []
-    }
-    try {
-      return JSON.parse(raw) as CalendarMapItem[]
-    } catch (_e) {
-      return []
-    }
-  }
-
-  private saveCalendarMap(map: CalendarMapItem[]) {
-    AppStorage.setOrCreate('HabitCalendarMap', JSON.stringify(map))
-  }
-
-  private async clearAllCalendarEvents(): Promise<number> {
-    const ok = await this.ensureCalendarPermission()
-    if (!ok) {
-      return 0
-    }
-    const map = this.getCalendarMap()
-    if (map.length === 0) {
-      return 0
-    }
-    let cancelled = 0
-    try {
-      const cal = await this.getDefaultCalendar()
-      for (let i = 0; i < map.length; i++) {
-        const ids = map[i].eventIds
-        for (let j = 0; j < ids.length; j++) {
-          try {
-            // SDK expects eventId:number
-            await (cal.deleteEvent(ids[j]) as Promise<void>)
-            cancelled += 1
-          } catch (_e) {
-          }
-        }
-      }
-    } catch (_e) {
-    }
-    this.saveCalendarMap([])
-    return cancelled
   }
 
   private getReminderMap(): ReminderMapItem[] {
@@ -402,33 +455,6 @@ class HabitReminderManager {
     return buildRemainText(plan, progress)
   }
 
-  private buildAlarmReq(title: string, content: string, daysOfWeek: number[]): reminderAgentManager.ReminderRequest {
-    return {
-      reminderType: reminderAgentManager.ReminderType.REMINDER_TYPE_ALARM,
-      hour: 18,
-      minute: 0,
-      second: 0,
-      daysOfWeek: daysOfWeek,
-      title: title,
-      content: content
-    } as reminderAgentManager.ReminderRequest
-  }
-
-  private buildCalendarReq(triggerAt: number, title: string, content: string): reminderAgentManager.ReminderRequest {
-    const d = new Date(triggerAt)
-    return {
-      reminderType: reminderAgentManager.ReminderType.REMINDER_TYPE_CALENDAR,
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
-      day: d.getDate(),
-      hour: 18,
-      minute: 0,
-      second: 0,
-      title: title,
-      content: content
-    } as reminderAgentManager.ReminderRequest
-  }
-
   private monthLast3At18(year: number, monthIndex: number): number[] {
     const last = new Date(year, monthIndex + 1, 0).getDate()
     const result: number[] = []
@@ -449,6 +475,28 @@ class HabitReminderManager {
 
   private async publishReq(req: reminderAgentManager.ReminderRequest): Promise<number> {
     return await (reminderAgentManager.publishReminder(req) as Promise<number>)
+  }
+
+  // 使用与测试按钮一致的 Timer 类型发布方式
+  private buildTimerReqByTrigger(triggerAt: number, now: number, title: string, content: string,
+    notificationId: number): reminderAgentManager.ReminderRequestTimer {
+    let seconds = Math.ceil((triggerAt - now) / 1000)
+    if (seconds < 1) {
+      seconds = 1
+    }
+    return {
+      reminderType: reminderAgentManager.ReminderType.REMINDER_TYPE_TIMER,
+      triggerTimeInSeconds: seconds,
+      ringDuration: 15,
+      title: title,
+      content: content,
+      wantAgent: {
+        pkgName: 'com.example.todoplan',
+        abilityName: 'EntryAbility'
+      },
+      notificationId: notificationId,
+      slotType: notificationManager.SlotType.CONTENT_INFORMATION
+    } as reminderAgentManager.ReminderRequestTimer
   }
 
   private nextDailyAt18(now: number): number {
@@ -536,11 +584,16 @@ class HabitReminderManager {
   }
 
   private async syncSystemReminders(force: boolean, returnSummary: boolean): Promise<string> {
-    // 先尝试使用日历日程提醒（系统日历负责提醒，杀进程也能触发）
-    const calGranted = await this.ensureCalendarPermission()
-    AppStorage.setOrCreate('HabitCalendarPermissionGranted', calGranted)
-    if (!calGranted) {
-      return '日历权限未授予'
+    // 改回代理提醒：由系统代理，应用退后台/进程结束后仍可触发
+    const notifyGranted = await this.ensureNotificationPermission()
+    AppStorage.setOrCreate('HabitNotificationPermissionGranted', notifyGranted)
+    if (!notifyGranted) {
+      return '通知权限未授予'
+    }
+    const granted = await this.ensureReminderPermission()
+    AppStorage.setOrCreate('HabitReminderPermissionGranted', granted)
+    if (!granted) {
+      return '代理提醒权限未授予'
     }
 
     const all = await toDoPlanDB.query()
@@ -554,19 +607,25 @@ class HabitReminderManager {
       }
     }
 
-    // 日历提醒的内容依赖 PlanDB 的完成记录（养习惯完成进度）。
-    // 为避免内容滞后，这里不做“计划未变化”的短路判断：每次同步都重建本应用的日历提醒。
-
-    const cleared = await this.clearAllCalendarEvents()
+    // 代理提醒内容依赖 PlanDB 的完成记录；每次同步全量重建，保证内容新鲜
+    let cleared = 0
+    try {
+      await reminderAgentManager.cancelAllReminders()
+      cleared = await this.getValidReminderCount()
+    } catch (_e) {
+      // 部分机型可能不支持一次性清理，回退到已记录提醒清理
+      await this.clearAllKnownReminders()
+    }
+    this.saveReminderMap([])
     let success = 0
     let failed = 0
     let failReason = ''
     const now = Date.now()
-    const newCalMap: CalendarMapItem[] = []
+    const newReminderMap: ReminderMapItem[] = []
+    const publishCandidates: PublishCandidate[] = []
 
-    // 创建日历事件：按“每天/每周/每月”生成下一段触发时间
+    // 创建代理提醒：养习惯按下一个触发点提醒，定目标按目标日前一天18:00提醒
     try {
-      const cal = await this.getDefaultCalendar()
       for (let i = 0; i < habits.length; i++) {
         const plan = habits[i]
         const planId = String(plan.id ?? '')
@@ -585,7 +644,8 @@ class HabitReminderManager {
         const target = plan.timess ?? 0
         const unit = plan.timesss ?? '分钟'
         const done = unit === '次' ? progress.doneTimes : progress.doneMinutes
-        if (done >= target) {
+        // 仅当目标值有效(>0)时才判定“已完成即不提醒”
+        if (target > 0 && done >= target) {
           continue
         }
 
@@ -595,21 +655,13 @@ class HabitReminderManager {
         }
 
         const content = buildRemainText(plan, progress)
-        const title = `习惯提醒：${plan.title}`
-        const start = triggerAt
-        const end = start + 30 * 60 * 1000
-        const event = {
-          type: calendarManager.EventType.NORMAL,
-          title: title,
-          startTime: start,
-          endTime: end,
-          reminderTime: [0],
-          description: content
-        } as calendarManager.Event
-
-        const id = await (cal.addEvent(event) as Promise<number>)
-        newCalMap.push({ planId: planId, eventIds: [id] })
-        success += 1
+        publishCandidates.push({
+          planId: planId,
+          triggerAt: triggerAt,
+          planType: 'habit',
+          title: plan.title,
+          content: content
+        })
       }
 
       // 定目标：若未完成，在“实现日期前一天 18:00”提醒
@@ -628,27 +680,57 @@ class HabitReminderManager {
         // 只统计从目标创建开始到提醒时刻的完成进度
         const rangeStart = goal.date_added ?? 0
         const records = await planDB.queryByTitleAndRange(goal.title, rangeStart, reminderTs)
-        if (this.isGoalDone(goal, records)) {
+        const goalTarget = goal.timess ?? 0
+        // 仅当目标值有效(>0)时才判定“已完成即不提醒”
+        if (goalTarget > 0 && this.isGoalDone(goal, records)) {
           continue
         }
 
         const progress = buildProgress(records)
         const content = buildRemainText(goal, progress)
-        const title = `定目标提醒：${goal.title}`
+        publishCandidates.push({
+          planId: planId,
+          triggerAt: reminderTs,
+          planType: 'goal',
+          title: goal.title,
+          content: content
+        })
+      }
 
-        const start = reminderTs
-        const end = start + 30 * 60 * 1000
-        const event = {
-          type: calendarManager.EventType.NORMAL,
-          title: title,
-          startTime: start,
-          endTime: end,
-          reminderTime: [0],
-          description: content
-        } as calendarManager.Event
+      // 同一天同一时刻的代理提醒合并成一条发布
+      const mergedList: MergedPublishCandidate[] = []
+      for (let i = 0; i < publishCandidates.length; i++) {
+        this.pushMergedCandidate(mergedList, publishCandidates[i])
+      }
 
-        const id = await (cal.addEvent(event) as Promise<number>)
-        newCalMap.push({ planId: planId, eventIds: [id] })
+      for (let i = 0; i < mergedList.length; i++) {
+        const merged = mergedList[i]
+        let title = `计划提醒（${merged.titles.length}项）`
+        if (merged.titles.length == 1) {
+          const type = merged.planTypes[0]
+          if (type == 'habit') {
+            title = `养习惯：${merged.titles[0]}`
+          } else if (type == 'goal') {
+            title = `定目标：${merged.titles[0]}`
+          } else {
+            title = `计划提醒：${merged.titles[0]}`
+          }
+        } else if (this.allSameType(merged.planTypes)) {
+          const type = merged.planTypes[0]
+          if (type == 'habit') {
+            title = `养习惯提醒（${merged.titles.length}项）`
+          } else if (type == 'goal') {
+            title = `定目标提醒（${merged.titles.length}项）`
+          }
+        }
+        const content = this.buildMergedContent(merged.titles)
+        // 与测试按钮一致：统一使用 Timer 类型发布代理提醒
+        const notificationId = 880000 + (i % 10000)
+        const req = this.buildTimerReqByTrigger(merged.triggerAt, now, title, content, notificationId)
+        const id = await this.publishReq(req)
+        for (let j = 0; j < merged.planIds.length; j++) {
+          this.upsertReminderMapItem(newReminderMap, merged.planIds[j], id)
+        }
         success += 1
       }
     } catch (e) {
@@ -656,13 +738,13 @@ class HabitReminderManager {
       failReason = this.parseError(e as Object)
     }
 
-    this.saveCalendarMap(newCalMap)
+    this.saveReminderMap(newReminderMap)
     AppStorage.setOrCreate('HabitReminderLastSyncAt', Date.now())
     AppStorage.setOrCreate('HabitReminderLastError', failReason)
 
     const summary = failReason.length > 0
-      ? `养习惯${habits.length}条 + 定目标${goals.length}条（日历提醒，清理${cleared}条），本次创建成功${success}条，失败${failed}条（${failReason}）`
-      : `养习惯${habits.length}条 + 定目标${goals.length}条（日历提醒，清理${cleared}条），本次创建成功${success}条，失败${failed}条`
+      ? `养习惯${habits.length}条 + 定目标${goals.length}条（代理提醒），本次创建成功${success}条，失败${failed}条（${failReason}）`
+      : `养习惯${habits.length}条 + 定目标${goals.length}条（代理提醒），本次创建成功${success}条，失败${failed}条`
     AppStorage.setOrCreate('HabitReminderLastSyncSummary', summary)
 
     if (returnSummary) {

@@ -1,4 +1,4 @@
-import { promptAction, router } from '@kit.ArkUI'
+import { promptAction } from '@kit.ArkUI'
 import { i } from '../../api/AIChatAPI';
 import { aiChatDB, AIChatDBInfo } from '../../database/AIChatDB';
 import inputMethod from '@ohos.inputMethod';
@@ -21,24 +21,24 @@ struct PlanGeneratingDialog {
   build() {
     Column({ space: 14 }) {
       LoadingProgress()
-        .color('#f6726e')
+        .color($r('app.color.brand_primary'))
         .width(44)
         .height(44)
 
       Text('计划正在生成...')
         .fontSize(14)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#111827')
+        .fontColor($r('app.color.text_primary'))
 
       Text('请稍等片刻')
         .fontSize(12)
         .fontWeight(FontWeight.Medium)
-        .fontColor('#6B7280')
+        .fontColor($r('app.color.text_secondary'))
     }
     .padding(22)
     .width('70%')
     .borderRadius(14)
-    .backgroundColor('#fff')
+    .backgroundColor($r('app.color.card_background'))
   }
 }
 
@@ -83,13 +83,13 @@ struct PlanPickDialog {
       Text('选择要添加的计划')
         .fontSize(16)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Color.Black)
+        .fontColor($r('app.color.text_primary'))
 
       if (this.plans.length === 0) {
         Text('没有解析到可用计划')
           .fontSize(13)
           .fontWeight(FontWeight.Medium)
-          .fontColor(Color.Gray)
+          .fontColor($r('app.color.text_secondary'))
       } else {
         List({ space: 10 }) {
           ForEach(this.plans, (p: GeneratedPlanItem, idx: number) => {
@@ -105,12 +105,12 @@ struct PlanPickDialog {
                   Text(p.title)
                     .fontSize(14)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor('#111827')
+                    .fontColor($r('app.color.text_primary'))
                     .maxLines(1)
                   Text(`${p.minutes} 分钟`)
                     .fontSize(12)
                     .fontWeight(FontWeight.Medium)
-                    .fontColor('#6B7280')
+                    .fontColor($r('app.color.text_secondary'))
                 }
                 .alignItems(HorizontalAlign.Start)
               }
@@ -124,8 +124,8 @@ struct PlanPickDialog {
 
       Row({ space: 12 }) {
         Button('取消')
-          .backgroundColor('#FFF1F0')
-          .fontColor('#f6726e')
+          .backgroundColor($r('app.color.brand_primary_soft_bg'))
+          .fontColor($r('app.color.brand_primary'))
           .layoutWeight(1)
           .height(42)
           .borderRadius(12)
@@ -134,8 +134,8 @@ struct PlanPickDialog {
           })
 
         Button('添加')
-          .backgroundColor('#f6726e')
-          .fontColor(Color.White)
+          .backgroundColor($r('app.color.brand_primary'))
+          .fontColor($r('app.color.text_on_brand'))
           .layoutWeight(1)
           .height(42)
           .borderRadius(12)
@@ -150,7 +150,7 @@ struct PlanPickDialog {
     .padding(18)
     .width('88%')
     .borderRadius(14)
-    .backgroundColor('#fff')
+    .backgroundColor($r('app.color.card_background'))
   }
 }
 
@@ -160,6 +160,7 @@ export struct AIChat {
   @State isButton: boolean = false
   @State inputText: string = ''
   @StorageLink('UserHead') userHead: string = 'app.media.ic_user_head_1'
+  @StorageLink('isUserLogin') isLogin: string = '未登录'
   @StorageLink('PlanChangedAt') planChangedAt: number = 0
   @State message: string = ''
   @State isOver: boolean = false
@@ -178,6 +179,10 @@ export struct AIChat {
   private planPickDialog: CustomDialogController | null = null
   private planGeneratingDialog: CustomDialogController | null = null
 
+  private isRemoteAvatar(head: string): boolean {
+    return head.startsWith('http://') || head.startsWith('https://')
+  }
+
   private scrollToBottom() {
     setTimeout(() => {
       this.chatScroller.scrollEdge(Edge.Bottom)
@@ -192,6 +197,19 @@ export struct AIChat {
       this.horizontalPadding = 20
       this.bubbleWidth = '75%'
     }
+  }
+
+  private clearChatHistory(): void {
+    const welcome: AIChatDBInfo = {
+      id: null,
+      spokesperson: 'AI',
+      content: '您好!很高兴与您交流。我是您的定制计划助手，请问有什么我可以帮助您的吗?比如制定一个健康计划、学习计划、财务计划或者旅行计划?请告诉我您的具体需求。',
+      date_added: Date.now()
+    }
+    aiChatDB.delete()
+    this.chat = []
+    aiChatDB.insert(welcome)
+    this.chat.push(welcome)
   }
 
   private findLastAiText(): string {
@@ -352,37 +370,56 @@ export struct AIChat {
 
   }
 
-  @Builder
-  NavigationTitle() {
-    Row() {
-      Image($r('app.media.ic_public_delete'))
-        .width(20)
-        .onClick(() => {
-          aiChatDB.delete()
-          this.chat = []
-          aiChatDB.insert({
-            id: null,
-            spokesperson: 'AI',
-            content: '您好!很高兴与您交流。我是您的定制计划助手，请问有什么我可以帮助您的吗?比如制定一个健康计划、学习计划、财务计划或者旅行计划?请告诉我您的具体需求。',
-            date_added: Date.now()
-          })
-          this.chat.push({
-            id: null,
-            spokesperson: 'AI',
-            content: '您好!很高兴与您交流。我是您的定制计划助手，请问有什么我可以帮助您的吗?比如制定一个健康计划、学习计划、财务计划或者旅行计划?请告诉我您的具体需求。',
-            date_added: Date.now()
-          })
-        })
-    }
-    .width('100%')
-    .justifyContent(FlexAlign.End)
-    .padding(10)
-  }
-
   build() {
-    Navigation() {
-      Column() {
-        Scroll(this.chatScroller) {
+    Column() {
+      Stack({ alignContent: Alignment.TopStart }) {
+        Column()
+          .width('100%')
+          .height(52)
+          .linearGradient({
+            direction: GradientDirection.Bottom,
+            repeating: false,
+            colors: [
+              [$r('app.color.page_gradient_2'), 0.0],
+              [$r('app.color.page_gradient_3'), 0.42],
+              [$r('app.color.page_gradient_end'), 1.0]
+            ]
+          })
+        Row() {
+          Text('计划铺子')
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.text_on_gradient_primary'))
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+          Blank()
+            .layoutWeight(1)
+          Button({ type: ButtonType.Normal, stateEffect: true }) {
+            Image($r('app.media.ic_public_delete'))
+              .width(18)
+              .height(18)
+              .fillColor($r('app.color.text_on_gradient_primary'))
+          }
+          .width(36)
+          .height(36)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.clearChatHistory()
+          })
+        }
+        .width('100%')
+        .height(52)
+        .alignItems(VerticalAlign.Center)
+        .padding({
+          left: this.horizontalPadding,
+          right: this.horizontalPadding,
+          top: 4,
+          bottom: 6
+        })
+      }
+      .width('100%')
+
+      Scroll(this.chatScroller) {
           List({ space: 30 }) {
             ForEach(this.chat, (v: AIChatDBInfo) => {
               if (v.spokesperson == 'AI') {
@@ -392,14 +429,15 @@ export struct AIChat {
                       .width('10%')
                     if (v.content == '') {
                       LoadingProgress()
-                        .color(Color.Orange)
+                        .color($r('app.color.brand_primary'))
                         .width(40)
                     } else {
                       Text(v.content)
                         .width(this.bubbleWidth)
                         .padding(10)
                         .borderRadius(20)
-                        .backgroundColor(Color.White)
+                        .fontColor($r('app.color.text_primary'))
+                        .backgroundColor($r('app.color.card_background'))
                     }
                     Blank()
 
@@ -415,13 +453,31 @@ export struct AIChat {
                       Text(v.content)
                         .padding(10)
                         .borderRadius(20)
-                        .backgroundColor(Color.White)
+                        .fontColor($r('app.color.text_primary'))
+                        .backgroundColor($r('app.color.card_background'))
                     }
                     .justifyContent(FlexAlign.End)
                     .width(this.bubbleWidth)
 
-                    Image($r(this.userHead))
-                      .width('10%')
+                    if (this.isLogin == '未登录') {
+                      Image($r('app.media.ic_user_account'))
+                        .width(40)
+                        .height(40)
+                        .borderRadius(20)
+                        .backgroundColor($r('app.color.avatar_ring'))
+                    } else if (this.isRemoteAvatar(this.userHead)) {
+                      Image(this.userHead)
+                        .width(40)
+                        .height(40)
+                        .borderRadius(20)
+                        .backgroundColor($r('app.color.avatar_ring'))
+                    } else {
+                      Image($r(this.userHead))
+                        .width(40)
+                        .height(40)
+                        .borderRadius(20)
+                        .backgroundColor($r('app.color.avatar_ring'))
+                    }
                   }
                   .alignItems(VerticalAlign.Top)
                   .justifyContent(FlexAlign.End)
@@ -432,111 +488,125 @@ export struct AIChat {
           }
           .padding({ left: this.horizontalPadding, right: this.horizontalPadding })
           .width('100%')
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .align(Alignment.TopStart)
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .align(Alignment.TopStart)
+      .linearGradient({
+        direction: GradientDirection.Bottom,
+        repeating: false,
+        colors: [
+          [$r('app.color.page_gradient_end'), 0.0],
+          [$r('app.color.page_gradient_end'), 0.22],
+          [$r('app.color.list_area_background'), 0.68],
+          [$r('app.color.list_area_background'), 1.0]
+        ]
+      })
 
+      Column({ space: 10 }) {
         Row() {
           Button('一键生成计划', { buttonStyle: ButtonStyleMode.TEXTUAL })
-            .fontColor('#f6726e')
-            .onClick(async () => {
-              this.openGeneratingDialog()
-              await this.generatePlansFromLastAiText()
-              this.isCanDoPlan = false
-            })
-        }
-        .padding({ left: this.horizontalPadding, right: this.horizontalPadding, bottom: 5 })
-        .width('100%')
+              .fontColor($r('app.color.brand_primary'))
+              .onClick(async () => {
+                this.openGeneratingDialog()
+                await this.generatePlansFromLastAiText()
+                this.isCanDoPlan = false
+              })
+          }
+          .width('100%')
 
-        Row() {
-          // 多行输入：内容变多后自动换行并增高
-          TextArea({ text: $$this.inputText })
-            .width('75%')
-            .maxLines(6)
-            .borderRadius(12)
-            .padding(10)
-            .onChange((inputText: String) => {
-              if (inputText == '') {
-                this.isButton = false
-              } else {
-                this.isButton = true
-              }
-            })
-          Button('发送')
-            .backgroundColor('#00b877')
-            .alignSelf(ItemAlign.End)
-            .onClick(async () => {
-              let inputMethodController = inputMethod.getController();
-              inputMethodController.stopInputSession();
-              this.isOver = false
-              this.message = ''
-              await aiChatDB.insert({
-                id: null,
-                spokesperson: 'user',
-                content: this.inputText,
-                date_added: Date.now()
-              })
-              this.chat.push({
-                id: null,
-                spokesperson: 'user',
-                content: this.inputText,
-                date_added: Date.now()
-              })
-              this.chat.push({
-                id: null,
-                spokesperson: 'AI',
-                content: '',
-                date_added: Date.now()
-              })
-              this.scrollToBottom()
-              await i(this.inputText, (chunk) => {
-                this.message += chunk
-                this.chat[this.chat.length - 1] = {
-                  id: null,
-                  spokesperson: 'AI',
-                  content: this.message,
-                  date_added: Date.now()
+          Row() {
+            // 多行输入：内容变多后自动换行并增高
+            TextArea({ text: $$this.inputText })
+              .width('75%')
+              .maxLines(6)
+              .borderRadius(12)
+              .padding(10)
+              .onChange((inputText: String) => {
+                if (inputText == '') {
+                  this.isButton = false
+                } else {
+                  this.isButton = true
                 }
-                // 实时更新消息
-                this.scrollToBottom()
-              }, (isOver) => {
-                this.isOver = isOver
-                aiChatDB.insert({
+              })
+            Button('发送')
+              .backgroundColor($r('app.color.accent_send'))
+              .fontColor($r('app.color.accent_send_text'))
+              .alignSelf(ItemAlign.End)
+              .onClick(async () => {
+                let inputMethodController = inputMethod.getController();
+                inputMethodController.stopInputSession();
+                this.isOver = false
+                this.message = ''
+                await aiChatDB.insert({
+                  id: null,
+                  spokesperson: 'user',
+                  content: this.inputText,
+                  date_added: Date.now()
+                })
+                this.chat.push({
+                  id: null,
+                  spokesperson: 'user',
+                  content: this.inputText,
+                  date_added: Date.now()
+                })
+                this.chat.push({
                   id: null,
                   spokesperson: 'AI',
-                  content: this.message,
+                  content: '',
                   date_added: Date.now()
                 })
                 this.scrollToBottom()
-              }, async () => {
-                this.chat[this.chat.length - 1] = {
-                  id: null,
-                  spokesperson: 'AI',
-                  content: '服务器连接错误，请重试',
-                  date_added: Date.now()
-                }
-                this.scrollToBottom()
+                await i(this.inputText, (chunk) => {
+                  this.message += chunk
+                  this.chat[this.chat.length - 1] = {
+                    id: null,
+                    spokesperson: 'AI',
+                    content: this.message,
+                    date_added: Date.now()
+                  }
+                  // 实时更新消息
+                  this.scrollToBottom()
+                }, (isOver) => {
+                  this.isOver = isOver
+                  aiChatDB.insert({
+                    id: null,
+                    spokesperson: 'AI',
+                    content: this.message,
+                    date_added: Date.now()
+                  })
+                  this.scrollToBottom()
+                }, async () => {
+                  this.chat[this.chat.length - 1] = {
+                    id: null,
+                    spokesperson: 'AI',
+                    content: '服务器连接错误，请重试',
+                    date_added: Date.now()
+                  }
+                  this.scrollToBottom()
+                })
+                this.inputText = ''
               })
-              this.inputText = ''
-            })
-            .enabled(this.isButton)
+              .enabled(this.isButton)
         }
         .justifyContent(FlexAlign.SpaceBetween)
         .width('100%')
-        .padding({ left: this.horizontalPadding, right: this.horizontalPadding })
       }
       .width('100%')
-      .height('100%')
-      .justifyContent(FlexAlign.Start)
-      .alignItems(HorizontalAlign.Start)
-      .onAreaChange((_, value) => {
-        this.updateResponsiveLayout(value.width as number)
+      .padding({
+        left: this.horizontalPadding,
+        right: this.horizontalPadding,
+        top: 6,
+        bottom: 26
       })
+      .backgroundColor($r('app.color.list_area_background'))
     }
-    .titleMode(NavigationTitleMode.Mini)
-    .title(this.NavigationTitle())
-    .mode(NavigationMode.Stack)
-    .hideBackButton(true)
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Start)
+    .alignItems(HorizontalAlign.Start)
+    .onAreaChange((_, value) => {
+      this.updateResponsiveLayout(value.width as number)
+    })
   }
 }

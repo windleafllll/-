@@ -15,13 +15,8 @@ struct HistoricalRecords {
   }
 
   async QueryPlan() {
-    this.Plan = []
-    let a = await planDB.query()
-    a.forEach((v: PlanDBInfo) => {
-      if (dayjs(v.date_added).format('YYYY-MM-DD') == this.nowTime) {
-        this.Plan.push(v)
-      }
-    })
+    const a = await planDB.query()
+    this.Plan = a.filter((v: PlanDBInfo) => dayjs(v.date_added).format('YYYY-MM-DD') == this.nowTime)
   }
 
   @Builder
@@ -29,104 +24,138 @@ struct HistoricalRecords {
     Row({ space: 10 }) {
       Image($r('app.media.ic_public_back'))
         .width(30)
-        .fillColor(Color.White)
-        .onClick(()=>{
+        .fillColor($r('app.color.subpage_nav_bar_fg'))
+        .onClick(() => {
           router.back()
         })
       Text(this.DayDate)
         .fontWeight(FontWeight.Bold)
         .fontSize(19)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.subpage_nav_bar_fg'))
       Text(this.YearDate)
         .fontWeight(FontWeight.Bold)
         .fontSize(11)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.subpage_nav_bar_fg'))
     }
     .alignItems(VerticalAlign.Bottom)
     .width('100%')
-    .backgroundColor('#f6726e')
+    .backgroundColor($r('app.color.subpage_nav_bar_bg'))
     .padding({ left: 15, right: 15 })
   }
 
   build() {
     Navigation() {
-      Column({ space: 20 }) {
-        CalendarPicker()
-          .textStyle({
-            color: '#f6726e',
-            font: {
-              size: 15,
-              weight: FontWeight.Bold
-            }
-          })
-          .onChange((Value: Date) => {
-            this.nowTime = dayjs(Value).format('YYYY-MM-DD')
-            this.DayDate = dayjs(Value).format('MM月DD日')
-            this.YearDate = dayjs(Value).format('YYYY')
-            this.QueryPlan()
-          })
+      Column() {
+        Column() {
+          CalendarPicker()
+            .width('100%')
+            .textStyle({
+              color: $r('app.color.brand_primary'),
+              font: {
+                size: 15,
+                weight: FontWeight.Bold
+              }
+            })
+            .onChange((Value: Date) => {
+              this.nowTime = dayjs(Value).format('YYYY-MM-DD')
+              this.DayDate = dayjs(Value).format('MM月DD日')
+              this.YearDate = dayjs(Value).format('YYYY')
+              this.QueryPlan()
+            })
+        }
+        .width('100%')
+        .padding({
+          left: 16,
+          right: 16,
+          top: 4,
+          bottom: 8
+        })
+
         Scroll() {
-          Column({ space: 15 }) {
-            Text('历史记录：')
-              .fontSize(20)
+          Column({ space: 8 }) {
+            Text('历史记录')
+              .fontSize(18)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#f6726e')
+              .fontColor($r('app.color.text_primary'))
+              .width('100%')
+
+            if (this.Plan.length === 0) {
+              Text('当天暂无专注记录')
+                .fontSize(13)
+                .fontColor($r('app.color.text_secondary'))
+                .width('100%')
+                .padding({ top: 4, bottom: 8 })
+            }
+
             ForEach(this.Plan, (v: PlanDBInfo) => {
               Row() {
-                Column({ space: 20 }) {
+                Column({ space: 8 }) {
                   Text(v.title)
-                    .fontSize(17)
+                    .fontSize(16)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor('#f6726e')
-                  Text((v.times / 60).toFixed(1) + '分钟')
-                    .fontSize(11)
+                    .fontColor($r('app.color.text_primary'))
+                    .maxLines(2)
+                  Text((v.times / 60).toFixed(1) + ' 分钟')
+                    .fontSize(12)
                     .fontWeight(FontWeight.Medium)
+                    .fontColor($r('app.color.text_secondary'))
                 }
                 .alignItems(HorizontalAlign.Start)
+                .layoutWeight(1)
 
-                Blank()
-                Column({ space: 20 }) {
+                Column({ space: 8 }) {
                   if (v.is_accomplish) {
                     Text('已完成')
-                      .fontSize(11)
+                      .fontSize(12)
                       .fontWeight(FontWeight.Bold)
-                      .fontColor('#f6726e')
+                      .fontColor($r('app.color.brand_primary'))
                   } else {
                     Text('未完成')
-                      .fontSize(11)
+                      .fontSize(12)
                       .fontWeight(FontWeight.Bold)
-                      .fontColor('#f6726e')
+                      .fontColor($r('app.color.text_secondary'))
                   }
-                  Text(dayjs(v.date_added).format('HH点mm分'))
-                    .fontSize(11)
+                  Text(dayjs(v.date_added).format('HH:mm'))
+                    .fontSize(12)
                     .fontWeight(FontWeight.Medium)
+                    .fontColor($r('app.color.text_secondary'))
                 }
                 .alignItems(HorizontalAlign.End)
               }
-              .borderRadius(15)
-              .padding(10)
-              .backgroundColor('#1df6726e')
+              .borderRadius(14)
+              .padding(14)
+              .backgroundColor($r('app.color.card_background'))
+              .border({ width: 1, color: $r('app.color.input_border') })
               .width('100%')
-            })
+            }, (v: PlanDBInfo) => `${v.id ?? 0}_${v.date_added}_${v.title}`)
           }
           .width('100%')
           .alignItems(HorizontalAlign.Start)
+          .padding({
+            left: 16,
+            right: 16,
+            top: 0,
+            bottom: 24
+          })
         }
-        .padding({ bottom: 30 })
+        .width('100%')
+        .scrollBar(BarState.Off)
       }
-      .padding(10)
-      .backgroundColor('#fff1f1f1')
       .width('100%')
       .height('100%')
+      .backgroundColor($r('app.color.list_area_background'))
     }
     .title(this.navigationTitle())
     .titleMode(NavigationTitleMode.Mini)
     .mode(NavigationMode.Stack)
     .hideBackButton(true)
     .linearGradient({
-      direction: GradientDirection.Bottom, // 渐变方向
-      repeating: false, // 渐变颜色是否重复
-      colors: [['#f6726e', 0.5], ['#fff1f1f1', 0.9]] // 数组末尾元素占比小于1时满足重复着色效果
+      direction: GradientDirection.Bottom,
+      repeating: false,
+      colors: [
+        [$r('app.color.page_gradient_1'), 0.45],
+        [$r('app.color.page_gradient_end'), 0.92]
+      ]
     })
   }
 }

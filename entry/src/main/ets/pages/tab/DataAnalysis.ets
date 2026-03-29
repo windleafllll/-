@@ -119,6 +119,11 @@ export struct DataAnalysis {
       yAxis: {
         //设置y轴的相关样式与功能
         name: '时间（分钟）',
+        nameTextStyle: {
+          color: '#999999',
+          fontSize: 28,
+          fontWeight: '600'
+        },
         axisTick: {
           //刻度线配置
           length: 6, //刻度的长度
@@ -234,8 +239,8 @@ export struct DataAnalysis {
         itemWidth: 10, //图形的宽度
         itemHeight: 10, //图形的高度
         textStyle: {
-          //文本样式配置
-          color: '#ff000000', //字体颜色
+          //文本样式配置（勿用 #ff000000：深色图表底上会完全看不见）
+          color: '#3C73FF',
           fontSize: 40, //字体大小
           fontWeight: '500' //字体粗细
         }
@@ -271,6 +276,11 @@ export struct DataAnalysis {
       //设置Y轴的相关样式与功能
       yAxis: {
         name: '时间（分钟）',
+        nameTextStyle: {
+          color: '#ff838383',
+          fontSize: 35,
+          fontWeight: '500'
+        },
         axisTick: {
           //刻度线配置
           length: 6, //刻度的长度
@@ -349,8 +359,7 @@ export struct DataAnalysis {
         itemWidth: 10, //图形的宽度
         itemHeight: 10, //图形的高度
         textStyle: {
-          //文本样式配置
-          color: '#ff000000', //字体颜色
+          color: '#3C73FF',
           fontSize: 40, //字体大小
           fontWeight: '500' //字体粗细
         }
@@ -386,6 +395,11 @@ export struct DataAnalysis {
       //设置Y轴的相关样式与功能
       yAxis: {
         name: '时间（分钟）',
+        nameTextStyle: {
+          color: '#ff838383',
+          fontSize: 35,
+          fontWeight: '500'
+        },
         axisTick: {
           //刻度线配置
           length: 6, //刻度的长度
@@ -636,6 +650,7 @@ export struct DataAnalysis {
             Text('累计专注')
               .fontSize(15)
               .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.text_primary'))
             Row() {
               Column({ space: 10 }) {
                 Text('次数')
@@ -681,7 +696,7 @@ export struct DataAnalysis {
           }
           .padding(10)
           .borderRadius(10)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.card_background'))
           .width('100%')
           .alignItems(HorizontalAlign.Start)
 
@@ -734,7 +749,7 @@ export struct DataAnalysis {
           }
           .padding(10)
           .borderRadius(10)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.card_background'))
           .width('100%')
           .alignItems(HorizontalAlign.Start)
 
@@ -754,7 +769,7 @@ export struct DataAnalysis {
           }
           .padding(10)
           .borderRadius(10)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.card_background'))
           .width('100%')
 
           Column({ space: 10 }) {
@@ -773,7 +788,7 @@ export struct DataAnalysis {
           }
           .padding(10)
           .borderRadius(10)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.card_background'))
           .width('100%')
 
           Column({ space: 10 }) {
@@ -795,7 +810,7 @@ export struct DataAnalysis {
           }
           .padding(10)
           .borderRadius(10)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.card_background'))
           .width('100%')
 
           Column({ space: 10 }) {
@@ -817,15 +832,30 @@ export struct DataAnalysis {
           }
           .padding(10)
           .borderRadius(10)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.card_background'))
           .width('100%')
+
         }
+        .width('100%')
         .padding(15)
         .onAreaChange((_, value) => {
           this.updateChartLayout(value.width as number)
         })
       }
     }
+    .width('100%')
+    .height('100%')
+    .linearGradient({
+      direction: GradientDirection.Bottom,
+      repeating: false,
+      colors: [
+        [$r('app.color.page_gradient_2'), 0.0],
+        [$r('app.color.page_gradient_3'), 0.12],
+        [$r('app.color.page_gradient_end'), 0.4],
+        [$r('app.color.list_area_background'), 0.78],
+        [$r('app.color.list_area_background'), 1.0]
+      ]
+    })
     .onRefreshing(async () => {
       await this.testing()
       this.refreshing = false
