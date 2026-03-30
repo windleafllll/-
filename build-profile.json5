@@ -6,12 +6,12 @@
         "type": "HarmonyOS",
         "material": {
           "storeFile": "E:/ToDoPlanAppKey/Key store/ToDoPlan_Key_Store.p12",
-          "storePassword": "0000001F48E5558DE82327BF82619DF4144AA869323721B2CE28DBB0CA737D8006B37F48C8521DE26197EDB0EE8899",
+          "storePassword": "0000001FF1D576119926C6F1C50A3795E9EEDF704F143272A8FD1F1A59EF4E2B9B204C0E5B8BFA945AA2984A553E83",
           "keyAlias": "ToDoPlan",
-          "keyPassword": "0000001F285E4538562F25BBD9DA4D93673B7B2D0231B9F85A2359E5A9085EE764143B4D1A630DDF04191E722E67C2",
+          "keyPassword": "0000001FEE2E75429C59604954088BCF4141CD653E24836FB96E6059D6BE0DDDF9EE39C937E725FA9689A31302F29C",
           "signAlg": "SHA256withECDSA",
-          "profile": "E:/ToDoPlanAppKey/调试证书/杨桃树调试Debug.p7b",
-          "certpath": "E:/ToDoPlanAppKey/调试证书/杨桃树调试.cer"
+          "profile": "E:/ToDoPlanAppKey/Profile/杨桃树Release.p7b",
+          "certpath": "E:/ToDoPlanAppKey/证书/杨桃树.cer"
         }
       }
     ],

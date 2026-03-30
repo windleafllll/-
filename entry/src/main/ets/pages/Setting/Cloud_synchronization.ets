@@ -257,7 +257,6 @@ struct VIPDialog {
 @Entry
 @Component
 struct Cloud_synchronization {
-  // TODO: 替换成你的Cloud DB存储区名（cloudDBZoneName）
   private static readonly CLOUD_DB_ZONE: string = 'todoplan'
   dialogHelp: CustomDialogController | null = new CustomDialogController({
     builder: HelpDialog(),
@@ -649,7 +648,8 @@ struct Cloud_synchronization {
           title: it.title,
           times: it.times,
           is_accomplish: it.isAccomplish > 0,
-          date_added: it.date_added
+          date_added: it.date_added,
+          todo_plan_id: null
         })
       }
 

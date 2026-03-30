@@ -36,33 +36,78 @@ struct CustomDialogExample {
   controllerTwo?: CustomDialogController
 
   build() {
-    Column({ space: 10 }) {
-      Text('注意')
-        .fontColor($r('app.color.brand_warning'))
-        .fontSize(30)
-        .fontWeight(FontWeight.Bold)
-      Text('您的计划尚未完成，您是否要放弃此次计划')
-        .fontSize(20)
-        .fontWeight(FontWeight.Medium)
-        .fontColor($r('app.color.text_primary'))
-      Row() {
-        Button('确定放弃')
-          .buttonStyle(ButtonStyleMode.TEXTUAL)
-          .fontColor($r('app.color.text_secondary'))
-          .onClick(async () => {
-            if (this.controllerTwo != undefined) {
-              // 退出/放弃时，确保白噪音停止
-              await avPlayerManager.stop()
-              this.controllerTwo.close()
-              router.back()
-            }
-          })
+    Column({ space: 20 }) {
+      Row({ space: 12 }) {
+        Column()
+          .width(4)
+          .height(40)
+          .borderRadius(2)
+          .backgroundColor($r('app.color.brand_warning'))
+
+        Column({ space: 8 }) {
+          Text('计划尚未完成')
+            .fontSize(19)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.text_primary'))
+            .width('100%')
+          Text('确定要放弃本次专注吗？退出后本次进度将不会计入完成记录。')
+            .fontSize(14)
+            .fontColor($r('app.color.text_secondary'))
+            .lineHeight(22)
+            .width('100%')
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
       }
+      .width('100%')
+      .alignItems(VerticalAlign.Top)
+
+      Row({ space: 12 }) {
+        Row() {
+          Text('继续专注')
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.dialog_button_secondary_text'))
+        }
+        .layoutWeight(1)
+        .height(46)
+        .justifyContent(FlexAlign.Center)
+        .borderRadius(14)
+        .backgroundColor($r('app.color.dialog_button_secondary_bg'))
+        .border({ width: 1, color: $r('app.color.input_border') })
+        .clip(true)
+        .onClick(() => {
+          this.controllerTwo?.close()
+        })
+
+        Row() {
+          Text('确定放弃')
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.text_destructive'))
+        }
+        .layoutWeight(1)
+        .height(46)
+        .justifyContent(FlexAlign.Center)
+        .borderRadius(14)
+        .backgroundColor($r('app.color.delete_icon_button_bg'))
+        .border({ width: 1, color: $r('app.color.text_destructive') })
+        .clip(true)
+        .onClick(async () => {
+          if (this.controllerTwo != undefined) {
+            await avPlayerManager.stop()
+            this.controllerTwo.close()
+            router.back()
+          }
+        })
+      }
+      .width('100%')
     }
-    .width('75%')
-    .borderRadius(15)
-    .backgroundColor($r('app.color.dialog_frosted_panel'))
-    .padding(20)
+    .width('100%')
+    .padding(22)
+    .borderRadius(18)
+    .backgroundColor($r('app.color.noise_dialog_panel'))
+    .border({ width: 1, color: $r('app.color.noise_dialog_border') })
   }
 }
 
@@ -197,8 +242,8 @@ struct DoPlanIndex {
       this.isTimerRun = true
     },
     customStyle: true,
-    cornerRadius: 15,
-    width: '80%'
+    cornerRadius: 20,
+    width: '82%'
   })
   dialogChooseMusic: CustomDialogController | null = new CustomDialogController({
     builder: CustomDialogChooseNoise({
@@ -298,15 +343,19 @@ struct DoPlanIndex {
   async aboutToDisappear(): Promise<void> {
     this.inPlanPage = false
     // 离开页面时不做后台保活：直接停止白噪音
-    planDB.insert({
-      id: null,
-      title: this.title,
-      times: this.timeRan,
-      is_accomplish: this.isAccomplish,
-      date_added: Date.now()
-    })
-    // 养习惯提醒内容依赖 PlanDB 的完成记录；更新 PlanChangedAt 触发重算日历提醒
-    this.planChangedAt = Date.now()
+    // Plan.times 存实际专注秒数；未完成且不足 1 秒不写库，避免秒退产生无效条
+    if (this.timeRan > 0 || this.isAccomplish) {
+      planDB.insert({
+        id: null,
+        title: this.title,
+        times: this.timeRan,
+        is_accomplish: this.isAccomplish,
+        date_added: Date.now(),
+        todo_plan_id: this.routerParams.id ?? null
+      })
+      // 养习惯提醒内容依赖 PlanDB 的完成记录；更新 PlanChangedAt 触发重算日历提醒
+      this.planChangedAt = Date.now()
+    }
     clearInterval(this.intervalID1)
     clearInterval(this.intervalID2)
     if (this.marqueeIntervalId != 0) {

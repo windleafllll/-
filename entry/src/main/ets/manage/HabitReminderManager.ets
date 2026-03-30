@@ -6,7 +6,8 @@ import { toDoPlanDB, ToDoPlanDBInfo } from '../database/ToDoPlanDB'
 import { planDB, PlanDBInfo } from '../database/PlanDB'
 
 interface HabitProgress {
-  doneMinutes: number
+  /** Plan.times 为秒，多条累加 */
+  doneSeconds: number
   doneTimes: number
 }
 
@@ -33,6 +34,21 @@ interface ValidReminderCompat {
   year?: number
   month?: number
   day?: number
+}
+
+/** 系统当前返回的有效代理提醒（供「我的」页列表展示） */
+export interface PublishedAgentReminderItem {
+  id: number
+  reminderType: number
+  timeSummary: string
+  title: string
+  content: string
+}
+
+/** loadPublishedAgentReminders 的返回结构 */
+export interface PublishedAgentRemindersLoadResult {
+  items: PublishedAgentReminderItem[]
+  error: string
 }
 
 interface PublishCandidate {
@@ -80,13 +96,13 @@ function startOfMonth(ts: number): number {
 }
 
 function buildProgress(records: PlanDBInfo[]): HabitProgress {
-  let minutes = 0
+  let seconds = 0
   let times = 0
   for (let i = 0; i < records.length; i++) {
     times += 1
-    minutes += records[i].times
+    seconds += records[i].times
   }
-  return { doneMinutes: minutes, doneTimes: times }
+  return { doneSeconds: seconds, doneTimes: times }
 }
 
 function buildRemainText(plan: ToDoPlanDBInfo, progress: HabitProgress): string {
@@ -96,7 +112,8 @@ function buildRemainText(plan: ToDoPlanDBInfo, progress: HabitProgress): string 
     const remain = Math.max(0, target - progress.doneTimes)
     return `还剩 ${remain} 次未完成`
   }
-  const remain = Math.max(0, target - progress.doneMinutes)
+  const usedMin = Math.floor(progress.doneSeconds / 60)
+  const remain = Math.max(0, target - usedMin)
   return `还剩 ${remain} 分钟未完成`
 }
 
@@ -233,16 +250,7 @@ class HabitReminderManager {
         const t = r.title ?? '无标题'
         const c = r.content ?? ''
         const typeText = `${r.reminderType ?? -1}`
-        let timeText = ''
-        if (r.triggerTimeInSeconds != undefined) {
-          timeText = `倒计时:${r.triggerTimeInSeconds}s`
-        } else if (r.hour != undefined && r.minute != undefined) {
-          timeText = `时刻:${r.hour}:${r.minute}`
-        } else if (r.year != undefined && r.month != undefined && r.day != undefined) {
-          timeText = `日期:${r.year}-${r.month}-${r.day}`
-        } else {
-          timeText = '时间:未知'
-        }
+        const timeText = this.formatReminderTimeSummary(r)
         text += `\n#${i + 1} id=${rid} type=${typeText} ${timeText}\n${t} ${c}`
       }
       if (list.length > show) {
@@ -251,6 +259,36 @@ class HabitReminderManager {
       return text
     } catch (e) {
       return `查询代理提醒失败: ${this.parseError(e as Object)}`
+    }
+  }
+
+  /**
+   * 与当前计划同步后，拉取系统侧全部有效代理提醒（getValidReminders），用于界面列表。
+   */
+  async loadPublishedAgentReminders(): Promise<PublishedAgentRemindersLoadResult> {
+    try {
+      await this.trySync(true, false)
+      const list = await (reminderAgentManager.getValidReminders() as Promise<ValidReminderCompat[]>)
+      const items: PublishedAgentReminderItem[] = []
+      for (let i = 0; i < list.length; i++) {
+        const r = list[i]
+        const row: PublishedAgentReminderItem = {
+          id: this.pickReminderId(r),
+          reminderType: r.reminderType ?? -1,
+          timeSummary: this.formatReminderTimeSummary(r),
+          title: r.title ?? '无标题',
+          content: r.content ?? ''
+        }
+        items.push(row)
+      }
+      const ok: PublishedAgentRemindersLoadResult = { items: items, error: '' }
+      return ok
+    } catch (e) {
+      const fail: PublishedAgentRemindersLoadResult = {
+        items: [],
+        error: this.parseError(e as Object)
+      }
+      return fail
     }
   }
 
@@ -319,6 +357,52 @@ class HabitReminderManager {
       return v.requestId
     }
     return 0
+  }
+
+  private pad2(n: number): string {
+    return n < 10 ? `0${n}` : `${n}`
+  }
+
+  /** 将秒数拆成天/时/分/秒，为 0 的单位不展示；全为 0 时显示「0秒」 */
+  private formatSecondsAsDayHourMinuteSecond(totalSeconds: number): string {
+    let t = Math.floor(totalSeconds)
+    if (t < 0) {
+      t = 0
+    }
+    const d = Math.floor(t / 86400)
+    const h = Math.floor((t % 86400) / 3600)
+    const m = Math.floor((t % 3600) / 60)
+    const s = t % 60
+    let body = ''
+    if (d > 0) {
+      body += `${d}天`
+    }
+    if (h > 0) {
+      body += `${h}时`
+    }
+    if (m > 0) {
+      body += `${m}分`
+    }
+    if (s > 0) {
+      body += `${s}秒`
+    }
+    if (body == '') {
+      body = '0秒'
+    }
+    return `倒计时 ${body}`
+  }
+
+  private formatReminderTimeSummary(r: ValidReminderCompat): string {
+    if (r.triggerTimeInSeconds != undefined) {
+      return this.formatSecondsAsDayHourMinuteSecond(r.triggerTimeInSeconds)
+    }
+    if (r.hour != undefined && r.minute != undefined) {
+      return `时刻 ${this.pad2(r.hour)}:${this.pad2(r.minute)}`
+    }
+    if (r.year != undefined && r.month != undefined && r.day != undefined) {
+      return `日期 ${r.year}-${this.pad2(r.month)}-${this.pad2(r.day)}`
+    }
+    return '时间未知'
   }
 
   private parseError(err: Object): string {
@@ -446,13 +530,14 @@ class HabitReminderManager {
     return text
   }
 
-  private async buildReminderContent(plan: ToDoPlanDBInfo, freq: string, now: number): Promise<string> {
-    const rangeStart =
-      freq === '每天' ? startOfDay(now) :
-        (freq === '每周' ? startOfWeek(now) : startOfMonth(now))
-    const records = await planDB.queryByTitleAndRange(plan.title, rangeStart, now)
-    const progress = buildProgress(records)
-    return buildRemainText(plan, progress)
+  private countHabitGoalSameTitle(title: string, habitGoalAll: ToDoPlanDBInfo[]): number {
+    let n = 0
+    for (let i = 0; i < habitGoalAll.length; i++) {
+      if (habitGoalAll[i].title === title) {
+        n++
+      }
+    }
+    return n
   }
 
   private monthLast3At18(year: number, monthIndex: number): number[] {
@@ -579,8 +664,10 @@ class HabitReminderManager {
     const progress = buildProgress(records)
     const target = plan.timess ?? 0
     const unit = plan.timesss ?? '分钟'
-    const done = unit === '次' ? progress.doneTimes : progress.doneMinutes
-    return done >= target
+    if (unit === '次') {
+      return progress.doneTimes >= target
+    }
+    return progress.doneSeconds >= target * 60
   }
 
   private async syncSystemReminders(force: boolean, returnSummary: boolean): Promise<string> {
@@ -605,6 +692,13 @@ class HabitReminderManager {
       } else if (all[i].event === '定目标') {
         goals.push(all[i])
       }
+    }
+    const habitGoalAll: ToDoPlanDBInfo[] = []
+    for (let i = 0; i < habits.length; i++) {
+      habitGoalAll.push(habits[i])
+    }
+    for (let i = 0; i < goals.length; i++) {
+      habitGoalAll.push(goals[i])
     }
 
     // 代理提醒内容依赖 PlanDB 的完成记录；每次同步全量重建，保证内容新鲜
@@ -639,13 +733,16 @@ class HabitReminderManager {
             (freq === '每周' ? startOfWeek(now) : startOfMonth(now))
 
         // 先算当前周期/当天是否已达标；达标则不创建下一次提醒
-        const records = await planDB.queryByTitleAndRange(plan.title, rangeStart, now)
+        const allowLegacy = this.countHabitGoalSameTitle(plan.title, habitGoalAll) <= 1
+        const records =
+          await planDB.queryRecordsForPlan(plan.id as number, plan.title, allowLegacy, rangeStart, now)
         const progress = buildProgress(records)
         const target = plan.timess ?? 0
         const unit = plan.timesss ?? '分钟'
-        const done = unit === '次' ? progress.doneTimes : progress.doneMinutes
+        const reached =
+          unit === '次' ? progress.doneTimes >= target : progress.doneSeconds >= target * 60
         // 仅当目标值有效(>0)时才判定“已完成即不提醒”
-        if (target > 0 && done >= target) {
+        if (target > 0 && reached) {
           continue
         }
 
@@ -679,7 +776,9 @@ class HabitReminderManager {
 
         // 只统计从目标创建开始到提醒时刻的完成进度
         const rangeStart = goal.date_added ?? 0
-        const records = await planDB.queryByTitleAndRange(goal.title, rangeStart, reminderTs)
+        const allowLegacyGoal = this.countHabitGoalSameTitle(goal.title, habitGoalAll) <= 1
+        const records =
+          await planDB.queryRecordsForPlan(goal.id as number, goal.title, allowLegacyGoal, rangeStart, reminderTs)
         const goalTarget = goal.timess ?? 0
         // 仅当目标值有效(>0)时才判定“已完成即不提醒”
         if (goalTarget > 0 && this.isGoalDone(goal, records)) {

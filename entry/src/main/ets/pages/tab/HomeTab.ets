@@ -4,13 +4,16 @@ import { ToDoPlan } from '../ToDoPlan/ToDoPlan'
 import { planDB, PlanDBInfo } from '../../database/PlanDB'
 
 interface HabitProgress {
-  doneMinutes: number
+  /** 分钟类目标：Plan.times 为每次专注的秒数，此处为累加秒数 */
+  doneSeconds: number
   doneTimes: number
 }
 
 interface PlanProgressItem {
   planId: string
   text: string
+  /** 养习惯/定目标：当前统计周期内是否已达成本期目标 */
+  phaseComplete: boolean
 }
 
 @CustomDialog
@@ -439,13 +442,13 @@ export struct HomeTab {
   }
 
   private buildProgress(records: PlanDBInfo[]): HabitProgress {
-    let minutes = 0
+    let seconds = 0
     let times = 0
     for (let i = 0; i < records.length; i++) {
       times += 1
-      minutes += records[i].times
+      seconds += records[i].times
     }
-    return { doneMinutes: minutes, doneTimes: times }
+    return { doneSeconds: seconds, doneTimes: times }
   }
 
   private buildProgressText(plan: ToDoPlanDBInfo, progress: HabitProgress): string {
@@ -455,8 +458,20 @@ export struct HomeTab {
       const done = progress.doneTimes
       return `已完成 ${done}/${target} 次`
     }
-    const done = progress.doneMinutes
-    return `已完成 ${done}/${target} 分钟`
+    const doneMin = Math.floor(progress.doneSeconds / 60)
+    return `已完成 ${doneMin}/${target} 分钟`
+  }
+
+  private computePhaseComplete(plan: ToDoPlanDBInfo, progress: HabitProgress): boolean {
+    const target = plan.timess ?? 0
+    if (target <= 0) {
+      return false
+    }
+    const unit = plan.timesss ?? '分钟'
+    if (unit === '次') {
+      return progress.doneTimes >= target
+    }
+    return progress.doneSeconds >= target * 60
   }
 
   private findProgressText(id: number | null): string {
@@ -470,6 +485,47 @@ export struct HomeTab {
       }
     }
     return ''
+  }
+
+  private findPhaseComplete(id: number | null): boolean {
+    if (id == null) {
+      return false
+    }
+    const key = id.toString()
+    for (let i = 0; i < this.progressList.length; i++) {
+      if (this.progressList[i].planId === key) {
+        return this.progressList[i].phaseComplete
+      }
+    }
+    return false
+  }
+
+  private countHabitGoalSameTitle(title: string): number {
+    let n = 0
+    for (let i = 0; i < this.list.length; i++) {
+      const p = this.list[i]
+      if (p.title === title && (p.event === '养习惯' || p.event === '定目标')) {
+        n++
+      }
+    }
+    return n
+  }
+
+  /** 任意类型计划中同名条数，用于首页展示区分 */
+  private countSameTitleAll(title: string): number {
+    let n = 0
+    for (let i = 0; i < this.list.length; i++) {
+      if (this.list[i].title === title) {
+        n++
+      }
+    }
+    return n
+  }
+
+  private planCardBackgroundRes(planId: number | null): Resource {
+    const len = this.backNumber.length
+    const idx = planId != null ? Math.abs(planId % len) : 0
+    return $r(this.backNumber[idx])
   }
 
   private async computeProgressList(): Promise<void> {
@@ -489,10 +545,14 @@ export struct HomeTab {
         : (v.time === '每周'
           ? this.startOfWeek(now)
           : (v.time === '每月' ? this.startOfMonth(now) : this.startOfDay(now)))
-      const records = await planDB.queryByTitleAndRange(v.title, rangeStart, now)
+      const allowLegacy = this.countHabitGoalSameTitle(v.title) <= 1
+      const records =
+        await planDB.queryRecordsForPlan(v.id, v.title, allowLegacy, rangeStart, now)
       const progress = this.buildProgress(records)
       const text = this.buildProgressText(v, progress)
-      result.push({ planId: planId, text: text })
+      const phaseComplete = this.computePhaseComplete(v, progress)
+      const row: PlanProgressItem = { planId: planId, text: text, phaseComplete: phaseComplete }
+      result.push(row)
     }
     this.progressList = result
   }
@@ -508,6 +568,46 @@ export struct HomeTab {
     // 大屏下收窄卡片左侧文字区，避免一行过长难读（仍铺满，不做居中容器）
     this.cardLeftWidth = width >= 900 ? '60%' : '72%'
     this.targetCardLeftWidth = width >= 900 ? '52%' : '60%'
+  }
+
+  @Builder
+  planTitleForHabitOrGoal(v: ToDoPlanDBInfo) {
+    Row() {
+      Text(v.title)
+        .fontColor($r('app.color.text_on_image'))
+        .fontSize(this.titleFontSize)
+        .fontWeight(FontWeight.Bold)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .layoutWeight(1)
+        .constraintSize({ minWidth: 0 })
+      if (this.countSameTitleAll(v.title) > 1) {
+        Text('#' + (v.id ?? ''))
+          .fontColor($r('app.color.text_on_image'))
+          .fontSize(this.metaFontSize)
+          .fontWeight(FontWeight.Medium)
+          .opacity(0.9)
+          .flexShrink(0)
+      }
+      if (this.findPhaseComplete(v.id)) {
+        Row({ space: 6 }) {
+          Image($r('app.media.ic_user_dui'))
+            .width(14)
+            .height(14)
+            .fillColor($r('app.color.text_on_brand'))
+          Text('已达标')
+            .fontColor($r('app.color.text_on_brand'))
+            .fontSize(this.metaFontSize)
+            .fontWeight(FontWeight.Medium)
+        }
+        .padding({ left: 10, right: 12, top: 6, bottom: 6 })
+        .borderRadius(12)
+        .backgroundColor($r('app.color.accent_send'))
+        .flexShrink(0)
+      }
+    }
+    .width('100%')
+    .alignItems(VerticalAlign.Center)
   }
 
   build() {
@@ -559,12 +659,25 @@ export struct HomeTab {
                     if (v.event == '番茄钟') {
                       Row() {
                         Column({ space: this.cardInnerSpace }) {
-                          Text(v.title)
-                            .fontColor($r('app.color.text_on_image'))
-                            .fontSize(this.titleFontSize)
-                            .fontWeight(FontWeight.Bold)
-                            .maxLines(1)
-                            .textOverflow({ overflow: TextOverflow.Ellipsis })
+                          Row() {
+                            Text(v.title)
+                              .fontColor($r('app.color.text_on_image'))
+                              .fontSize(this.titleFontSize)
+                              .fontWeight(FontWeight.Bold)
+                              .maxLines(1)
+                              .textOverflow({ overflow: TextOverflow.Ellipsis })
+                              .layoutWeight(1)
+                              .constraintSize({ minWidth: 0 })
+                            if (this.countSameTitleAll(v.title) > 1) {
+                              Text('#' + (v.id ?? ''))
+                                .fontColor($r('app.color.text_on_image'))
+                                .fontSize(this.metaFontSize)
+                                .fontWeight(FontWeight.Medium)
+                                .opacity(0.9)
+                                .flexShrink(0)
+                            }
+                          }
+                          .width('100%')
                           if (v.times) {
                             Text('单次 ' + v.times.toString() + ' 分钟')
                               .fontColor($r('app.color.text_on_image'))
@@ -584,7 +697,7 @@ export struct HomeTab {
 
                       }
                       .justifyContent(FlexAlign.SpaceBetween)
-                      .backgroundImage($r(this.backNumber[Math.floor(Math.random() * (10 - 0) + 0)]))
+                      .backgroundImage(this.planCardBackgroundRes(v.id))
                       .backgroundImageSize({ width: '100%', height: '100%' })
                       .padding(this.cardPadding)
                       .borderRadius(15)
@@ -592,12 +705,7 @@ export struct HomeTab {
                     } else if (v.event == '养习惯') {
                       Row() {
                         Column({ space: this.cardInnerSpace }) {
-                          Text(v.title)
-                            .fontColor($r('app.color.text_on_image'))
-                            .fontSize(this.titleFontSize)
-                            .fontWeight(FontWeight.Bold)
-                            .maxLines(1)
-                            .textOverflow({ overflow: TextOverflow.Ellipsis })
+                          this.planTitleForHabitOrGoal(v)
 
                           Row({ space: 10 }) {
                             Text('计划 ' + v.time)
@@ -630,7 +738,7 @@ export struct HomeTab {
                           })
                       }
                       .justifyContent(FlexAlign.SpaceBetween)
-                      .backgroundImage($r(this.backNumber[Math.floor(Math.random() * (10 - 0) + 0)]))
+                      .backgroundImage(this.planCardBackgroundRes(v.id))
                       .backgroundImageSize({ width: '100%', height: '100%' })
                       .padding(this.cardPadding)
                       .borderRadius(15)
@@ -638,12 +746,7 @@ export struct HomeTab {
                     } else if (v.event == '定目标') {
                       Row() {
                         Column({ space: this.cardInnerSpace }) {
-                          Text(v.title)
-                            .fontColor($r('app.color.text_on_image'))
-                            .fontSize(this.titleFontSize)
-                            .fontWeight(FontWeight.Bold)
-                            .maxLines(1)
-                            .textOverflow({ overflow: TextOverflow.Ellipsis })
+                          this.planTitleForHabitOrGoal(v)
 
                           Row({ space: 10 }) {
                             Text('截止 ' + v.time)
@@ -676,7 +779,7 @@ export struct HomeTab {
                           })
                       }
                       .justifyContent(FlexAlign.SpaceBetween)
-                      .backgroundImage($r(this.backNumber[Math.floor(Math.random() * (10 - 0) + 0)]))
+                      .backgroundImage(this.planCardBackgroundRes(v.id))
                       .backgroundImageSize({ width: '100%', height: '100%' })
                       .padding(this.cardPadding)
                       .borderRadius(15)
@@ -690,13 +793,13 @@ export struct HomeTab {
                       this.dialogToDoPlan.open()
                     }
                   })
-                })
+                }, (v: ToDoPlanDBInfo) => `${v.id ?? 0}_${v.date_added}`)
               }
               .scrollBar(BarState.Off)
             } else {
               Row() {
                 Text('请先点击 + 创建一个计划')
-                  .fontColor(Color.Gray)
+                  .fontColor($r('app.color.text_secondary'))
                   .fontSize(15)
                   .fontWeight(FontWeight.Medium)
               }

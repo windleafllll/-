@@ -512,19 +512,30 @@ export struct DataAnalysis {
     })
   }
 
+  /** 饼图维度：有 todo_plan_id 时带编号，避免同名计划合并成一项 */
+  private planPieLabel(v: PlanDBInfo): string {
+    const tid = v.todo_plan_id
+    if (tid !== undefined && tid !== null && tid > 0) {
+      return `${v.title} (#${tid})`
+    }
+    return v.title
+  }
+
   statisticalPlanning() {
     this.pieChartPlans = []
     this.pieChartPlan = []
     this.pieChart = []
     this.plan.forEach((v: PlanDBInfo) => {
-      this.pieChartPlans.push(v.title)
-      if (!this.pieChartPlan.includes(v.title)) {
-        this.pieChartPlan.push(v.title)
+      const label = this.planPieLabel(v)
+      this.pieChartPlans.push(label)
+      if (!this.pieChartPlan.includes(label)) {
+        this.pieChartPlan.push(label)
       }
     })
     for (let i = this.pieChartPlan.length - 1; i >= 0; i--) {
-      const a = this.pieChartPlans.filter(v => v == this.pieChartPlan[i])
-      this.pieChart.push({ name: this.pieChartPlan[i], value: a.length })
+      const name = this.pieChartPlan[i]
+      const a = this.pieChartPlans.filter((x: string) => x == name)
+      this.pieChart.push({ name: name, value: a.length })
     }
   }
 
